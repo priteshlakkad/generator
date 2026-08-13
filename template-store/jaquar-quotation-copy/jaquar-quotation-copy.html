@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @page { size: A4; margin: 26px 28px 34px 28px; }
+  * { box-sizing: border-box; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 9px; color: #111; }
+
+  .header { text-align: center; margin-bottom: 4px; }
+  .header img { height: 34px; }
+  h1.title { text-align: center; font-size: 15px; text-decoration: underline; margin: 6px 0 12px; }
+  h2.subtitle { text-align: center; font-size: 11px; text-decoration: underline; margin: 14px 0 8px; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+
+  table.meta td { border: 1px solid #000; padding: 3px 6px; font-size: 9px; }
+  table.meta td.label { font-weight: bold; background: #f0f0f0; width: 15%; }
+  table.meta td.section-caption { text-align: center; font-weight: bold; background: #e2e2e2; }
+
+  .section-heading { font-weight: bold; font-size: 10px; margin: 12px 0 4px; page-break-after: avoid; }
+
+  table.items { table-layout: fixed; }
+  table.items th, table.items td { border: 1px solid #000; padding: 3px 4px; font-size: 8px; text-align: center; vertical-align: middle; word-wrap: break-word; }
+  table.items th { background: #dedede; font-weight: bold; }
+  table.items tbody { page-break-inside: avoid; }
+  table.items td.image-cell img { max-height: 28px; max-width: 44px; }
+  table.items td.desc-cell { text-align: left; font-style: italic; }
+  table.items tfoot td { font-weight: bold; text-align: right; background: #f0f0f0; }
+
+  table.summary td { border: 1px solid #000; padding: 4px 6px; font-size: 9px; }
+  table.summary td.label { font-weight: bold; background: #f0f0f0; }
+  table.summary tr.words td { font-weight: bold; }
+
+  table.people th, table.people td { border: 1px solid #000; padding: 3px 6px; font-size: 9px; text-align: left; }
+  table.people th { background: #e2e2e2; }
+  table.people caption { text-align: left; font-weight: bold; background: #e2e2e2; border: 1px solid #000; padding: 3px 6px; caption-side: top; }
+
+  table.terms { margin-top: 6px; }
+  table.terms td { border: 1px solid #000; padding: 4px 6px; font-size: 8px; vertical-align: top; }
+  table.terms td.term-no { width: 4%; text-align: center; }
+  table.terms td.term-title { width: 20%; font-weight: bold; }
+  table.terms tr.terms-caption td { text-align: center; font-weight: bold; background: #e2e2e2; }
+  ul.term-points { margin: 0; padding-left: 14px; }
+
+  .footer-note { text-align: center; font-size: 8px; color: #333; margin-top: 6px; }
+</style>
+</head>
+<body>
+
+  <div class="header"><img src="{{logoUrl}}" alt=""/></div>
+  <h1 class="title">Draft Quotation</h1>
+
+  <table class="meta">
+    <tr>
+      <td class="label">Quote Number :</td><td>{{quoteNumber}}</td>
+      <td class="label">Quote Date :</td><td>{{quoteDate}}</td>
+    </tr>
+  </table>
+
+  <table class="meta">
+    <tr><td class="section-caption" colspan="4">CUSTOMER DETAILS</td></tr>
+    <tr>
+      <td class="label">Account Code</td><td>{{accountCode}}</td>
+      <td class="label">Account Name</td><td>{{accountName}}</td>
+    </tr>
+    <tr>
+      <td class="label">Address</td><td>{{address}}</td>
+      <td class="label">Contact Person</td><td>{{contactPerson}}</td>
+    </tr>
+    <tr>
+      <td class="label">City</td><td>{{city}}</td>
+      <td class="label">Mobile</td><td>{{mobile}}</td>
+    </tr>
+    <tr>
+      <td class="label">State</td><td>{{state}}</td>
+      <td class="label">Email</td><td>{{email}}</td>
+    </tr>
+  </table>
+
+  <h2 class="subtitle">Draft Quotation Details</h2>
+
+  <div data-repeat="sections">
+    <div class="section-heading">{{sectionName}}</div>
+    <table class="items">
+      <colgroup>
+        <col style="width:4%"/><col style="width:9%"/><col style="width:8%"/><col style="width:4%"/>
+        <col style="width:8%"/><col style="width:8%"/><col style="width:5%"/><col style="width:7%"/>
+        <col style="width:8%"/><col style="width:9%"/><col style="width:5%"/><col style="width:8%"/><col style="width:8%"/>
+      </colgroup>
+      <thead>
+        <tr>
+          <th>S. No.</th><th>Cat. No</th><th>Image</th><th>Qty</th><th>MRP</th><th>Unit Price</th>
+          <th>Dis (%)</th><th>Disc. Amt.</th><th>Rate/Unit</th><th>Total Taxable Amt.</th>
+          <th>GST %</th><th>Total GST/Tax Amt.</th><th>Total Amt.</th>
+        </tr>
+      </thead>
+      <tbody data-repeat="items">
+        <tr>
+          <td>{{slNo}}</td>
+          <td>{{catNo}}</td>
+          <td class="image-cell"><img src="{{imageUrl}}" alt=""/></td>
+          <td>{{qty}}</td>
+          <td>{{mrp}}</td>
+          <td>{{unitPrice}}</td>
+          <td>{{discPercent}}</td>
+          <td>{{discAmt}}</td>
+          <td>{{ratePerUnit}}</td>
+          <td>{{taxableAmt}}</td>
+          <td>{{gstPercent}}</td>
+          <td>{{gstAmt}}</td>
+          <td>{{totalAmt}}</td>
+        </tr>
+        <tr>
+          <td class="desc-cell" colspan="13">HSN Code / Description - {{hsnCode}} / {{description}}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="12">{{sectionName}} TOTAL:</td><td>{{sectionTotal}}</td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <h2 class="subtitle">Quotation Summary</h2>
+
+  <table class="summary">
+    <tr>
+      <td class="label">Total Quantity</td><td>{{totalQuantity}}</td>
+      <td class="label">Total MRP</td><td>{{totalMrp}}</td>
+    </tr>
+    <tr>
+      <td class="label">Total Taxable Amt.</td><td>{{totalTaxableAmt}}</td>
+      <td class="label">Total TAX</td><td>{{totalTax}}</td>
+    </tr>
+    <tr>
+      <td class="label">Net Amt.</td><td>{{netAmt}}</td>
+      <td class="label"></td><td></td>
+    </tr>
+    <tr class="words">
+      <td class="label">Amount (In Words)</td><td colspan="3">{{amountInWords}}</td>
+    </tr>
+  </table>
+
+  <table class="people">
+    <caption>CUSTOMER CONTACT DETAILS</caption>
+    <tr><th>Contact Name</th><th>Contact Email</th><th>Contact Number</th></tr>
+    <tr><td>{{customerContactName}}</td><td>{{customerContactEmail}}</td><td>{{customerContactNumber}}</td></tr>
+  </table>
+
+  <table class="people">
+    <caption>SALES TEAM</caption>
+    <tr><th>Sales Person Name</th><th>Email</th><th>Contact Number</th></tr>
+    <tr><td>{{salesPersonName}}</td><td>{{salesPersonEmail}}</td><td>{{salesPersonNumber}}</td></tr>
+  </table>
+
+  <table class="people">
+    <caption>CREATED BY</caption>
+    <tr><th>Name</th><th>Email</th><th>Contact Number</th></tr>
+    <tr><td>{{createdByName}}</td><td>{{createdByEmail}}</td><td>{{createdByNumber}}</td></tr>
+  </table>
+
+  <table class="terms">
+    <tr class="terms-caption"><td colspan="2">Mandatory Terms &amp; Conditions for Quotation</td></tr>
+    <tbody data-repeat="terms">
+      <tr>
+        <td class="term-no">{{no}}</td>
+        <td class="term-title">{{title}}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <ul class="term-points">
+            <li data-repeat="points">{{value}}</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer-note">
+    Website :- {{websiteUrl}} &nbsp;|&nbsp; Purchase Assistance Number :- {{purchaseAssistanceNumber}}
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,217 @@
+{
+  "logoUrl": "https://www.jaquar.com/images/jaquar-logo.png",
+  "quoteNumber": "Q-560122",
+  "quoteDate": "07/08/2026",
+
+  "accountCode": "CUS-798033",
+  "accountName": "Rishav Pal",
+  "address": "Saint Xaviers School Road",
+  "contactPerson": "Rishav Pal",
+  "city": "Mumbai",
+  "mobile": "9667464958",
+  "state": "Maharashtra",
+  "email": "sanraj@deloitte.com",
+
+  "sections": [
+    {
+      "sectionName": "Home - Floor 1 - Section A",
+      "sectionTotal": "INR 12,54,855.00",
+      "items": [
+        {
+          "slNo": 1,
+          "catNo": "ABT-WHT-FSBTCF2011",
+          "imageUrl": "https://example.com/images/products/fsbtcf2011.png",
+          "qty": 1,
+          "mrp": "INR 3,16,000.00",
+          "unitPrice": "INR 2,69,000.00",
+          "discPercent": "15.00",
+          "discAmt": "INR 40,350.00",
+          "ratePerUnit": "INR 1,93,771.19",
+          "taxableAmt": "INR 1,93,771.19",
+          "gstPercent": "18.00",
+          "gstAmt": "INR 34,878.81",
+          "totalAmt": "INR 2,28,650.00",
+          "hsnCode": "39229000",
+          "description": "ARTIZE CONFLUENCE 1800 X 800 X 515MM SOLID SURFACE FREE STANDING BATHTUB"
+        },
+        {
+          "slNo": 2,
+          "catNo": "ABT-WHT-FSBTLX1001",
+          "imageUrl": "https://example.com/images/products/fsbtlx1001.png",
+          "qty": 1,
+          "mrp": "INR 1,84,000.00",
+          "unitPrice": "INR 1,56,000.00",
+          "discPercent": "15.00",
+          "discAmt": "INR 23,400.00",
+          "ratePerUnit": "INR 1,12,372.88",
+          "taxableAmt": "INR 1,12,372.88",
+          "gstPercent": "18.00",
+          "gstAmt": "INR 20,227.12",
+          "totalAmt": "INR 1,32,600.00",
+          "hsnCode": "39229000",
+          "description": "LEXA 1800 X 800 X 500 MM FREE STANDING BATHTUB"
+        },
+        {
+          "slNo": 3,
+          "catNo": "ABT-WHT-FSBTTA3011",
+          "imageUrl": "https://example.com/images/products/fsbtta3011.png",
+          "qty": 1,
+          "mrp": "INR 3,99,000.00",
+          "unitPrice": "INR 3,39,000.00",
+          "discPercent": "15.00",
+          "discAmt": "INR 50,850.00",
+          "ratePerUnit": "INR 2,44,194.92",
+          "taxableAmt": "INR 2,44,194.92",
+          "gstPercent": "18.00",
+          "gstAmt": "INR 43,955.08",
+          "totalAmt": "INR 2,88,150.00",
+          "hsnCode": "39229000",
+          "description": "ARTIZE TIAARA 1900 X 900 X 500MM SOLID SURFACE FREE STANDING BATHTUB"
+        }
+      ]
+    },
+    {
+      "sectionName": "Home - Floor 2 - Section B",
+      "sectionTotal": "INR 47,456.35",
+      "items": [
+        {
+          "slNo": 11,
+          "catNo": "ABT-WHT-TIAARA190X",
+          "imageUrl": "https://example.com/images/products/tiaara190x.png",
+          "qty": 1,
+          "mrp": "INR 55,500.00",
+          "unitPrice": "INR 47,200.00",
+          "discPercent": "15.00",
+          "discAmt": "INR 7,080.00",
+          "ratePerUnit": "INR 34,000.00",
+          "taxableAmt": "INR 34,000.00",
+          "gstPercent": "18.00",
+          "gstAmt": "INR 6,120.00",
+          "totalAmt": "INR 40,120.00",
+          "hsnCode": "39229000",
+          "description": "TIAARA 1900 X 900 X 520MM BUILT-IN BATHTUB"
+        },
+        {
+          "slNo": 25,
+          "catNo": "ACI-WHT-LTRK3L1MTRBL",
+          "imageUrl": "https://example.com/images/products/ltrk3l1mtrbl.png",
+          "qty": 1,
+          "mrp": "INR 1,010.00",
+          "unitPrice": "INR 855.00",
+          "discPercent": "15.00",
+          "discAmt": "INR 128.25",
+          "ratePerUnit": "INR 615.89",
+          "taxableAmt": "INR 615.89",
+          "gstPercent": "18.00",
+          "gstAmt": "INR 110.86",
+          "totalAmt": "INR 726.75",
+          "hsnCode": "94054900",
+          "description": "ONE-METER 3-LINES TRACK, BLACK FINISH"
+        }
+      ]
+    }
+  ],
+
+  "totalQuantity": 25,
+  "totalMrp": "INR 17,74,135.00",
+  "totalTaxableAmt": "INR 11,03,653.69",
+  "totalTax": "INR 1,98,657.66",
+  "netAmt": "INR 13,02,311.00",
+  "amountInWords": "Thirteen Lakh Two Thousand Three Hundred Eleven Rupees",
+
+  "customerContactName": "Rishav Pal",
+  "customerContactEmail": "sanraj@deloitte.com",
+  "customerContactNumber": "9667464958",
+
+  "salesPersonName": "Arnab Choudhury",
+  "salesPersonEmail": "sanraj@deloitte.com",
+  "salesPersonNumber": "9818692508",
+
+  "createdByName": "Arnab Choudhury",
+  "createdByEmail": "sanraj@deloitte.com",
+  "createdByNumber": "9818692508",
+
+  "terms": [
+    {
+      "no": 1,
+      "title": "Quotation and Validity",
+      "points": ["The quotation will be valid till 15 Days."]
+    },
+    {
+      "no": 2,
+      "title": "Purchase Order (PO) Issuance",
+      "points": [
+        "The Purchase Order (PO) must be issued within Quotation validity period to the Dealer authorised by the Company.",
+        "Copy of the PO must be sent to the Company as well without fail within the same timeline as mentioned above.",
+        "PO Email or correspondence must be sent from your Authorised Person's email ID only."
+      ]
+    },
+    {
+      "no": 3,
+      "title": "Price Validity",
+      "points": ["The Agreed Rate will be valid for a maximum period of 30 Days from date of issuance of Purchase Order."]
+    },
+    {
+      "no": 4,
+      "title": "Delivery Schedule",
+      "points": [
+        "Delivery schedule must be given within price validity period as mentioned above.",
+        "It means order must be scheduled for delivery within 30 Days from the date of the Purchase order."
+      ]
+    },
+    {
+      "no": 5,
+      "title": "Change of Delivery Schedule",
+      "points": [
+        "Delivery can be rescheduled at 15 days prior notice, in writing, before original schedule date.",
+        "The revised schedule date, if any, must fall within price validity period."
+      ]
+    },
+    {
+      "no": 6,
+      "title": "Terms of Supply of Goods",
+      "points": ["Goods will be supplied by the Dealer (AD/MD/RSD/RD/ASD) Authorised by the Company."]
+    },
+    {
+      "no": 7,
+      "title": "Terms of Payment",
+      "points": [
+        "100% advance payment is must with Purchase Order (PO).",
+        "Payment must be made to the concerned Dealer within stipulated timeline to ensure uninterrupted supply."
+      ]
+    },
+    {
+      "no": 8,
+      "title": "Communication",
+      "points": ["All Communication/Correspondence must be made in writing. Verbal commitments are not admissible."]
+    },
+    {
+      "no": 9,
+      "title": "Warranty",
+      "points": [
+        "All products are covered under standard warranty policy of the company applicable for the product.",
+        "Warranty certificate can be obtained from our website www.jaquar.com after registration."
+      ]
+    },
+    {
+      "no": 10,
+      "title": "Additional Terms Applicable for Shower Enclosure, only",
+      "points": [
+        "Minimum 20 Days from receipt of PO if quantity >= 75 Units.",
+        "Minimum 25 Days from receipt of PO if quantity < 75 Units.",
+        "No modification / Cancellation possible after PO is given.",
+        "Company's authorized service provider will install the product.",
+        "Lift Service is to be provided or made available for use to carry product to installation site.",
+        "Suitable electrical connection is to be provided for efficient working of power tools required for installation."
+      ]
+    },
+    {
+      "no": 11,
+      "title": "Others",
+      "points": []
+    }
+  ],
+
+  "websiteUrl": "https://www.jaquar.com/",
+  "purchaseAssistanceNumber": "1800-120-332222"
+}

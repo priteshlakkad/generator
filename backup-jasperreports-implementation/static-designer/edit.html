@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Report Designer</title>
+	<link rel="stylesheet" href="css/designer.css">
+</head>
+<body>
+	<div class="designer">
+		<div class="toolbar">
+			<a href="index.html">&larr; Templates</a>
+			<span class="title" id="templateTitle"></span>
+			<span class="template-meta" id="templateMeta"></span>
+			<span class="spacer"></span>
+			<span class="status" id="statusMessage"></span>
+			<button id="insertTableBtn">Insert Table</button>
+			<button id="insertFormBtn">Insert Form Fields</button>
+			<button id="viewSourceBtn">View Source</button>
+			<button class="primary" id="saveBtn">Save</button>
+		</div>
+
+		<div class="palette" id="palette">
+			<h3>Components</h3>
+			<div class="palette-item" data-element-type="staticText">Static Text</div>
+			<div class="palette-item" data-element-type="textField">Text Field</div>
+			<div class="palette-item" data-element-type="image">Image</div>
+
+			<div id="dataPanel"></div>
+		</div>
+
+		<div class="canvas-area">
+			<div id="canvas"></div>
+			<div class="readonly-panel" id="readOnlyPanel"></div>
+		</div>
+
+		<div class="inspector" id="inspector"></div>
+	</div>
+
+	<div class="source-overlay hidden" id="sourceOverlay">
+		<div class="source-panel">
+			<div class="source-panel-header">
+				<strong>jrxml source (read-only)</strong>
+				<button id="closeSourceBtn">Close</button>
+			</div>
+			<pre id="sourceContent"></pre>
+		</div>
+	</div>
+
+	<div class="source-overlay hidden" id="tableBuilderOverlay">
+		<div class="source-panel">
+			<div class="source-panel-header">
+				<strong>Insert Table</strong>
+				<button id="closeTableBuilderBtn">Close</button>
+			</div>
+			<div class="modal-body" id="tableBuilderBody"></div>
+		</div>
+	</div>
+
+	<div class="source-overlay hidden" id="formFieldOverlay">
+		<div class="source-panel">
+			<div class="source-panel-header">
+				<strong>Insert Form Fields</strong>
+				<button id="closeFormFieldBtn">Close</button>
+			</div>
+			<div class="modal-body" id="formFieldBody"></div>
+		</div>
+	</div>
+
+	<script src="js/api.js"></script>
+	<script src="js/selection.js"></script>
+	<script src="js/palette.js"></script>
+	<script src="js/canvas.js"></script>
+	<script src="js/inspector.js"></script>
+	<script src="js/tablebuilder.js"></script>
+	<script src="js/formfield.js"></script>
+	<script src="js/app.js"></script>
+</body>
+</html>

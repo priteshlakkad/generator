@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Report Templates</title>
+	<link rel="stylesheet" href="css/designer.css">
+</head>
+<body>
+	<div class="page">
+		<div class="page-header">
+			<h1>Report Templates</h1>
+			<button class="primary" id="newTemplateBtn">New Template</button>
+		</div>
+		<ul class="template-list" id="templateList"></ul>
+	</div>
+
+	<div class="source-overlay hidden" id="sampleJsonOverlay">
+		<div class="source-panel">
+			<div class="source-panel-header">
+				<strong id="sampleJsonTitle">Sample data (JSON)</strong>
+				<button id="closeSampleJsonBtn">Close</button>
+			</div>
+			<pre id="sampleJsonBody"></pre>
+		</div>
+	</div>
+
+	<script src="js/api.js"></script>
+	<script>
+		const listEl = document.getElementById('templateList');
+
+		function formatSize(bytes) {
+			return bytes < 1024 ? bytes + ' B' : Math.round(bytes / 1024) + ' KB';
+		}
+
+		function formatDate(epochMillis) {
+			return new Date(epochMillis).toLocaleString();
+		}
+
+		async function refresh() {
+			const templates = await Api.listTemplates();
+			listEl.innerHTML = '';
+			if (templates.length === 0) {
+				listEl.innerHTML = '<li class="empty-state" style="display:block">No templates yet. Click "New Template" to design one.</li>';
+				return;
+			}
+			for (const t of templates) {
+				const li = document.createElement('li');
+				li.innerHTML = `
+					<div>
+						<a href="edit.html?type=${encodeURIComponent(t.templateType)}">${t.templateType}</a>
+						<div class="template-meta">${formatSize(t.sizeBytes)} &middot; updated ${formatDate(t.lastModifiedEpochMillis)}</div>
+					</div>
+					<div>
+						<button data-sample="${t.templateType}">View Sample JSON</button>
+						<button data-copy="${t.templateType}">Copy</button>
+						<button data-delete="${t.templateType}" class="danger">Delete</button>
+					</div>
+				`;
+				listEl.appendChild(li);
+			}
+		}
+
+		listEl.addEventListener('click', async (e) => {
+			const deleteType = e.target.getAttribute('data-delete');
+			if (deleteType) {
+				if (!confirm(`Delete template "${deleteType}"? This cannot be undone.`)) return;
+				await Api.deleteTemplate(deleteType);
+				refresh();
+				return;
+			}
+
+			const copyType = e.target.getAttribute('data-copy');
+			if (copyType) {
+				const newName = prompt('New template name (letters, numbers, "-", "_"):', `${copyType}-copy`);
+				if (!newName) return;
+				try {
+					await Api.copyTemplate(copyType, newName);
+					refresh();
+				} catch (err) {
+					alert('Could not copy template: ' + err.message);
+				}
+				return;
+			}
+
+			const sampleType = e.target.getAttribute('data-sample');
+			if (sampleType) {
+				try {
+					const sampleData = await Api.getSampleData(sampleType);
+					document.getElementById('sampleJsonTitle').textContent = `Sample data (JSON) — ${sampleType}`;
+					document.getElementById('sampleJsonBody').textContent = JSON.stringify(sampleData, null, 2);
+					document.getElementById('sampleJsonOverlay').classList.remove('hidden');
+				} catch (err) {
+					alert('Could not load sample data: ' + err.message);
+				}
+			}
+		});
+
+		document.getElementById('closeSampleJsonBtn').addEventListener('click', () => {
+			document.getElementById('sampleJsonOverlay').classList.add('hidden');
+		});
+
+		document.getElementById('newTemplateBtn').addEventListener('click', async () => {
+			const name = prompt('Template name (letters, numbers, "-", "_"):');
+			if (!name) return;
+			try {
+				await Api.createBlank(name);
+				window.location.href = `edit.html?type=${encodeURIComponent(name)}`;
+			} catch (err) {
+				alert('Could not create template: ' + err.message);
+			}
+		});
+
+		refresh();
+	</script>
+</body>
+</html>

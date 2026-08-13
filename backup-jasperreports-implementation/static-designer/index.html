@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Report Templates</title>
+	<link rel="stylesheet" href="css/designer.css">
+</head>
+<body>
+	<div class="page">
+		<div class="page-header">
+			<h1>Report Templates</h1>
+			<div style="display:flex; gap:8px; align-items:center;">
+				<select id="starterSelect">
+					<option value="blank">Blank</option>
+					<option value="simple-invoice">Simple Invoice</option>
+				</select>
+				<button class="primary" id="newTemplateBtn">New Template</button>
+			</div>
+		</div>
+		<ul class="template-list" id="templateList"></ul>
+	</div>
+
+	<script src="js/api.js"></script>
+	<script src="js/starters.js"></script>
+	<script>
+		const listEl = document.getElementById('templateList');
+
+		function formatSize(bytes) {
+			return bytes < 1024 ? bytes + ' B' : Math.round(bytes / 1024) + ' KB';
+		}
+
+		function formatDate(epochMillis) {
+			return new Date(epochMillis).toLocaleString();
+		}
+
+		async function refresh() {
+			const templates = await Api.listTemplates();
+			listEl.innerHTML = '';
+			if (templates.length === 0) {
+				listEl.innerHTML = '<li class="empty-state" style="display:block">No templates yet. Click "New Template" to design one.</li>';
+				return;
+			}
+			for (const t of templates) {
+				const li = document.createElement('li');
+				li.innerHTML = `
+					<div>
+						<a href="edit.html?type=${encodeURIComponent(t.templateType)}">${t.templateType}</a>
+						<div class="template-meta">${formatSize(t.jrxmlSizeBytes)} &middot; updated ${formatDate(t.lastModifiedEpochMillis)}</div>
+					</div>
+					<div>
+						<button data-delete="${t.templateType}" class="danger">Delete</button>
+					</div>
+				`;
+				listEl.appendChild(li);
+			}
+		}
+
+		listEl.addEventListener('click', async (e) => {
+			const type = e.target.getAttribute('data-delete');
+			if (!type) return;
+			if (!confirm(`Delete template "${type}"? This cannot be undone.`)) return;
+			await Api.deleteTemplate(type);
+			refresh();
+		});
+
+		document.getElementById('newTemplateBtn').addEventListener('click', async () => {
+			const name = prompt('Template name (letters, numbers, "-", "_"):');
+			if (!name) return;
+			const starterKey = document.getElementById('starterSelect').value;
+			try {
+				await Api.createBlank(name, {});
+				await Starters.apply(name, starterKey);
+				window.location.href = `edit.html?type=${encodeURIComponent(name)}`;
+			} catch (err) {
+				alert('Could not create template: ' + err.message);
+			}
+		});
+
+		refresh();
+	</script>
+</body>
+</html>

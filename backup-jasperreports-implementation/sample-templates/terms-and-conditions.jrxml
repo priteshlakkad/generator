@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+	name="terms-and-conditions" pageWidth="750" pageHeight="595" orientation="Landscape"
+	columnWidth="710" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+	uuid="8f2e9b0a-1111-4a2b-9c3d-000000000002">
+
+	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+
+	<detail>
+		<band height="45" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="710" height="45"/>
+				<textElement><font size="7" fontName="SansSerif"/></textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[
+					$V{REPORT_COUNT}.intValue()==1 ? "1. Quotation and Validity: The quotation will be valid till 15 Days." :
+					$V{REPORT_COUNT}.intValue()==2 ? "2. Purchase Order (PO) Issuance: The Purchase Order (PO) must be issued within the Quotation validity period to the Dealer authorised by the Company. Copy of the PO must be sent to the Company as well without fail within the same timeline as mentioned above." :
+					$V{REPORT_COUNT}.intValue()==3 ? "   PO Email or correspondence must be sent from your Authorised Person's email ID only." :
+					$V{REPORT_COUNT}.intValue()==4 ? "3. Price Validity: The Agreed Rate will be valid for a maximum period of 30 Days from the date of issuance of the Purchase Order." :
+					$V{REPORT_COUNT}.intValue()==5 ? "4. Delivery Schedule: Delivery schedule must be given within the price validity period as mentioned above. Order must be scheduled for delivery within 30 Days from the date of the Purchase Order." :
+					$V{REPORT_COUNT}.intValue()==6 ? "5. Change of Delivery Schedule: Delivery can be rescheduled at 15 days prior notice, in writing, before the original schedule date. The revised date must fall within the price validity period." :
+					$V{REPORT_COUNT}.intValue()==7 ? "6. Terms of Supply of Goods: Goods will be supplied by the Dealer (AD/MD/RSD/RD/ASD) authorised by the Company." :
+					$V{REPORT_COUNT}.intValue()==8 ? "7. Terms of Payment: 100% advance payment is required with the Purchase Order (PO). Payment must be made to the concerned Dealer within the stipulated timeline to ensure uninterrupted supply." :
+					$V{REPORT_COUNT}.intValue()==9 ? "8. Communication: All Communication/Correspondence must be made in writing. Verbal commitments are not admissible." :
+					$V{REPORT_COUNT}.intValue()==10 ? "9. Warranty: All products are covered under the standard warranty policy of the company applicable for the product. A warranty certificate can be obtained from our website after registration." :
+					$V{REPORT_COUNT}.intValue()==11 ? "10. Additional Terms Applicable for Shower Enclosure only: Delivery period for Shower Enclosure - minimum 20 Days from receipt of PO if quantity >= 75 Units; minimum 25 Days from receipt of PO if quantity < 75 Units. No modification/cancellation is possible after the PO is given." :
+					$V{REPORT_COUNT}.intValue()==12 ? "    The Company's authorised service provider will install the product. Service personnel take necessary care while installing a product; notwithstanding this, the Company or service personnel will not be held responsible for any tile/stone breakage during installation. The technician should be informed about any concealed/hidden piping/item behind the wall and the surrounding installation site at the time of final measurement to prevent any damage to pipes etc." :
+					$V{REPORT_COUNT}.intValue()==13 ? "    Dedicated storage space with lock and key is to be provided at the site to avoid any theft/damage, if required. Lift service is to be provided or made available to carry the product to the installation site. A suitable electrical connection is to be provided for the efficient working of power tools required for installation." :
+					"11. Others: N/A"
+				]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+
+</jasperReport>

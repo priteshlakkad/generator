@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Template Editor</title>
+	<link rel="stylesheet" href="css/designer.css">
+</head>
+<body>
+	<div class="editor-page">
+		<div class="toolbar">
+			<a href="index.html">&larr; Templates</a>
+			<span class="title" id="templateTitle"></span>
+			<span class="spacer"></span>
+			<span class="status" id="statusMessage"></span>
+			<button id="sampleDataBtn">Sample Data</button>
+			<button id="previewBtn">Save &amp; Preview</button>
+			<button id="downloadBtn">Save &amp; Download PDF</button>
+			<button class="primary" id="saveBtn">Save</button>
+		</div>
+
+		<div class="editor-body">
+			<textarea id="editor"></textarea>
+		</div>
+	</div>
+
+	<div class="source-overlay hidden" id="sampleDataOverlay">
+		<div class="source-panel">
+			<div class="source-panel-header">
+				<strong>Sample data (JSON)</strong>
+				<span>
+					<button class="primary" id="saveSampleDataBtn">Save</button>
+					<button id="closeSampleDataBtn">Close</button>
+				</span>
+			</div>
+			<div class="modal-body">
+				<p class="template-meta">
+					Top-level keys become <code>{{token}}</code> values. An array key repeats any
+					table row marked with a matching <code>data-repeat</code> attribute (use the
+					"Data Table" button in the editor toolbar to insert one).
+				</p>
+				<textarea id="sampleDataJson" rows="16" style="width:100%; font-family:monospace;"></textarea>
+			</div>
+		</div>
+	</div>
+
+	<div class="source-overlay hidden" id="previewOverlay">
+		<div class="source-panel" style="width:95%; max-width:1100px; height:90vh;">
+			<div class="source-panel-header">
+				<strong>Preview</strong>
+				<button id="closePreviewBtn">Close</button>
+			</div>
+			<iframe id="previewFrame" style="flex:1; border:none; width:100%; height:100%;"></iframe>
+		</div>
+	</div>
+
+	<script src="vendor/tinymce/tinymce.min.js"></script>
+	<script src="js/api.js"></script>
+	<script src="js/editor.js"></script>
+</body>
+</html>
