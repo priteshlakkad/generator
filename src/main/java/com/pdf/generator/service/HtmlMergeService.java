@@ -21,9 +21,27 @@ public class HtmlMergeService {
 
 	private static final Pattern TOKEN_PATTERN = Pattern.compile("\\{\\{\\s*(\\w+)\\s*\\}\\}");
 
+	private final ColumnConfigService columnConfigService;
+
+	public HtmlMergeService(ColumnConfigService columnConfigService) {
+		this.columnConfigService = columnConfigService;
+	}
+
 	public String merge(String templateHtml, Map<String, Object> data) {
+		return merge(templateHtml, data, null);
+	}
+
+	/**
+	 * @param columnsJson the template's saved column config, or null to fall back to the columns
+	 *                    declared by the template markup itself.
+	 */
+	public String merge(String templateHtml, Map<String, Object> data, String columnsJson) {
 		Document doc = Jsoup.parse(templateHtml == null ? "" : templateHtml);
 		Map<String, Object> topLevel = data != null ? data : Map.of();
+
+		// Hide columns before the repeats are expanded: this rewrites the single template row
+		// rather than every one of the rendered rows.
+		columnConfigService.apply(doc, columnConfigService.effective(doc, columnsJson, topLevel));
 
 		expandRepeats(doc, topLevel);
 		substituteTokens(doc, topLevel);

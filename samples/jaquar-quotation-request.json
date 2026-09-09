@@ -2,7 +2,6 @@
   "logoUrl": "https://www.jaquar.com/images/jaquar-logo.png",
   "quoteNumber": "Q-560122",
   "quoteDate": "07/08/2026",
-
   "accountCode": "CUS-798033",
   "accountName": "Rishav Pal",
   "address": "Saint Xaviers School Road",
@@ -11,7 +10,6 @@
   "mobile": "9667464958",
   "state": "Maharashtra",
   "email": "sanraj@deloitte.com",
-
   "sections": [
     {
       "sectionName": "Home - Floor 1 - Section A",
@@ -20,6 +18,7 @@
         {
           "slNo": 1,
           "catNo": "ABT-WHT-FSBTCF2011",
+          "productUrl": "https://www.jaquar.com/en/product/abt-wht-fsbtcf2011",
           "imageUrl": "https://example.com/images/products/fsbtcf2011.png",
           "qty": 1,
           "mrp": "INR 3,16,000.00",
@@ -37,6 +36,7 @@
         {
           "slNo": 2,
           "catNo": "ABT-WHT-FSBTLX1001",
+          "productUrl": "https://www.jaquar.com/en/product/abt-wht-fsbtlx1001",
           "imageUrl": "https://example.com/images/products/fsbtlx1001.png",
           "qty": 1,
           "mrp": "INR 1,84,000.00",
@@ -54,6 +54,7 @@
         {
           "slNo": 3,
           "catNo": "ABT-WHT-FSBTTA3011",
+          "productUrl": "https://www.jaquar.com/en/product/abt-wht-fsbtta3011",
           "imageUrl": "https://example.com/images/products/fsbtta3011.png",
           "qty": 1,
           "mrp": "INR 3,99,000.00",
@@ -77,6 +78,7 @@
         {
           "slNo": 11,
           "catNo": "ABT-WHT-TIAARA190X",
+          "productUrl": "https://www.jaquar.com/en/product/abt-wht-tiaara190x",
           "imageUrl": "https://example.com/images/products/tiaara190x.png",
           "qty": 1,
           "mrp": "INR 55,500.00",
@@ -94,6 +96,7 @@
         {
           "slNo": 25,
           "catNo": "ACI-WHT-LTRK3L1MTRBL",
+          "productUrl": "https://www.jaquar.com/en/product/aci-wht-ltrk3l1mtrbl",
           "imageUrl": "https://example.com/images/products/ltrk3l1mtrbl.png",
           "qty": 1,
           "mrp": "INR 1,010.00",
@@ -111,31 +114,28 @@
       ]
     }
   ],
-
   "totalQuantity": 25,
   "totalMrp": "INR 17,74,135.00",
   "totalTaxableAmt": "INR 11,03,653.69",
   "totalTax": "INR 1,98,657.66",
   "netAmt": "INR 13,02,311.00",
   "amountInWords": "Thirteen Lakh Two Thousand Three Hundred Eleven Rupees",
-
   "customerContactName": "Rishav Pal",
   "customerContactEmail": "sanraj@deloitte.com",
   "customerContactNumber": "9667464958",
-
   "salesPersonName": "Arnab Choudhury",
   "salesPersonEmail": "sanraj@deloitte.com",
   "salesPersonNumber": "9818692508",
-
   "createdByName": "Arnab Choudhury",
   "createdByEmail": "sanraj@deloitte.com",
   "createdByNumber": "9818692508",
-
   "terms": [
     {
       "no": 1,
       "title": "Quotation and Validity",
-      "points": ["The quotation will be valid till 15 Days."]
+      "points": [
+        "The quotation will be valid till 15 Days."
+      ]
     },
     {
       "no": 2,
@@ -149,7 +149,9 @@
     {
       "no": 3,
       "title": "Price Validity",
-      "points": ["The Agreed Rate will be valid for a maximum period of 30 Days from date of issuance of Purchase Order."]
+      "points": [
+        "The Agreed Rate will be valid for a maximum period of 30 Days from date of issuance of Purchase Order."
+      ]
     },
     {
       "no": 4,
@@ -170,7 +172,9 @@
     {
       "no": 6,
       "title": "Terms of Supply of Goods",
-      "points": ["Goods will be supplied by the Dealer (AD/MD/RSD/RD/ASD) Authorised by the Company."]
+      "points": [
+        "Goods will be supplied by the Dealer (AD/MD/RSD/RD/ASD) Authorised by the Company."
+      ]
     },
     {
       "no": 7,
@@ -183,7 +187,9 @@
     {
       "no": 8,
       "title": "Communication",
-      "points": ["All Communication/Correspondence must be made in writing. Verbal commitments are not admissible."]
+      "points": [
+        "All Communication/Correspondence must be made in writing. Verbal commitments are not admissible."
+      ]
     },
     {
       "no": 9,
@@ -211,7 +217,6 @@
       "points": []
     }
   ],
-
   "websiteUrl": "https://www.jaquar.com/",
   "purchaseAssistanceNumber": "1800-120-332222"
 }

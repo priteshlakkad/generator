@@ -167,4 +167,71 @@ class TemplateStorageServiceTest {
 		assertThatThrownBy(() -> service.saveSampleData("missing", "{}"))
 			.isInstanceOf(TemplateNotFoundException.class);
 	}
+
+	@Test
+	void columnConfigRoundTripsAndIsNullUntilSaved() {
+		TemplateStorageService service = newService();
+		service.save("invoice", "<h1>{{title}}</h1>");
+
+		// Null rather than a default, so callers fall back to the columns the template declares.
+		assertThat(service.loadColumns("invoice")).isNull();
+
+		service.saveColumns("invoice", "{\"groups\":[]}");
+
+		assertThat(service.loadColumns("invoice")).isEqualTo("{\"groups\":[]}");
+		assertThat(Files.exists(tempDir.resolve("invoice/invoice.columns.json"))).isTrue();
+	}
+
+	@Test
+	void savingBlankColumnConfigIsRejected() {
+		TemplateStorageService service = newService();
+		service.save("invoice", "<h1>{{title}}</h1>");
+
+		assertThatThrownBy(() -> service.saveColumns("invoice", "  "))
+			.isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
+	void columnConfigForUnknownTemplateThrowsNotFound() {
+		TemplateStorageService service = newService();
+
+		assertThatThrownBy(() -> service.loadColumns("missing"))
+			.isInstanceOf(TemplateNotFoundException.class);
+		assertThatThrownBy(() -> service.saveColumns("missing", "{}"))
+			.isInstanceOf(TemplateNotFoundException.class);
+	}
+
+	@Test
+	void copyCarriesColumnConfigToTheNewTemplate() {
+		TemplateStorageService service = newService();
+		service.save("invoice", "<h1>{{title}}</h1>");
+		service.saveColumns("invoice", "{\"groups\":[{\"id\":\"items\",\"columns\":[]}]}");
+
+		service.copy("invoice", "invoice-copy");
+
+		assertThat(service.loadColumns("invoice-copy"))
+			.isEqualTo("{\"groups\":[{\"id\":\"items\",\"columns\":[]}]}");
+	}
+
+	@Test
+	void copyingWithoutColumnConfigOmitsTheFile() {
+		TemplateStorageService service = newService();
+		service.save("invoice", "<h1>{{title}}</h1>");
+
+		service.copy("invoice", "invoice-copy");
+
+		assertThat(Files.exists(tempDir.resolve("invoice-copy/invoice-copy.columns.json"))).isFalse();
+		assertThat(service.loadColumns("invoice-copy")).isNull();
+	}
+
+	@Test
+	void deleteRemovesColumnConfigAlongWithTheTemplate() {
+		TemplateStorageService service = newService();
+		service.save("invoice", "<h1>{{title}}</h1>");
+		service.saveColumns("invoice", "{\"groups\":[]}");
+
+		service.delete("invoice");
+
+		assertThat(Files.exists(tempDir.resolve("invoice"))).isFalse();
+	}
 }

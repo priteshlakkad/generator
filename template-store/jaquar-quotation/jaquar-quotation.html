@@ -3,60 +3,175 @@
 <head>
 <meta charset="UTF-8"/>
 <style>
-  @page { size: A4; margin: 26px 28px 34px 28px; }
+  @page {
+    size: A4;
+    margin: 74px 26px 46px 26px;
+    @top-center { content: element(pageHeader); }
+    @bottom-left { content: element(pageFooter); }
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: "DejaVu Sans", Helvetica, Arial, sans-serif;
+      font-size: 7px;
+      color: #6b6b6b;
+      vertical-align: bottom;
+    }
+  }
+
   * { box-sizing: border-box; }
-  body { font-family: Helvetica, Arial, sans-serif; font-size: 9px; color: #111; }
 
-  .header { text-align: center; margin-bottom: 4px; }
-  .header img { height: 34px; }
-  h1.title { text-align: center; font-size: 15px; text-decoration: underline; margin: 6px 0 12px; }
-  h2.subtitle { text-align: center; font-size: 11px; text-decoration: underline; margin: 14px 0 8px; }
+  body {
+    font-family: "DejaVu Sans", Helvetica, Arial, sans-serif;
+    font-size: 8.5px;
+    line-height: 1.45;
+    color: #1c1c1c;
+  }
 
-  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  /* ---- running page furniture: repeats on every page ---- */
 
-  table.meta td { border: 1px solid #000; padding: 3px 6px; font-size: 9px; }
-  table.meta td.label { font-weight: bold; background: #f0f0f0; width: 15%; }
-  table.meta td.section-caption { text-align: center; font-weight: bold; background: #e2e2e2; }
+  #pageHeader { position: running(pageHeader); width: 100%; }
+  #pageFooter { position: running(pageFooter); font-size: 7px; color: #6b6b6b; }
 
-  .section-heading { font-weight: bold; font-size: 10px; margin: 12px 0 4px; page-break-after: avoid; }
+  table.runner { width: 100%; border-collapse: collapse; }
+  table.runner td { border: none; padding: 0; vertical-align: middle; }
+  table.runner td.right { text-align: right; }
+  #pageHeader img { height: 26px; }
+  #pageHeader .quote-ref { font-size: 8px; color: #4a4a4a; }
+  #pageHeader .quote-ref strong { color: #1c1c1c; }
+  #pageHeader .rule { border-bottom: 1.5px solid #14487f; height: 4px; }
 
-  table.items { table-layout: fixed; }
-  table.items th, table.items td { border: 1px solid #000; padding: 3px 4px; font-size: 8px; text-align: center; vertical-align: middle; word-wrap: break-word; }
-  table.items th { background: #dedede; font-weight: bold; }
+  /* ---- document opening ---- */
+
+  h1.title {
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 0.6px;
+    color: #14487f;
+    margin: 2px 0 10px;
+  }
+  h2.subtitle {
+    font-size: 10px;
+    color: #14487f;
+    border-bottom: 1px solid #c8d6e5;
+    padding-bottom: 3px;
+    margin: 14px 0 7px;
+    page-break-after: avoid;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 7px; }
+
+  /* ---- customer / summary blocks ---- */
+
+  table.meta td { border: 1px solid #c8cdd3; padding: 4px 7px; font-size: 8.5px; }
+  table.meta td.label { font-weight: bold; background: #f2f5f8; width: 15%; color: #3c4b5a; }
+  table.meta td.section-caption {
+    text-align: center; font-weight: bold; letter-spacing: 0.5px;
+    background: #14487f; color: #ffffff; border-color: #14487f;
+  }
+
+  .section-heading {
+    font-weight: bold; font-size: 9.5px; color: #14487f;
+    background: #eef3f8; border-left: 3px solid #14487f;
+    padding: 4px 7px; margin: 10px 0 0;
+    page-break-after: avoid;
+  }
+
+  /* ---- line items ---- */
+
+  table.items {
+    table-layout: fixed;
+    /* Tells the renderer to split this table across pages and repeat <thead> on each
+       one, instead of treating it as a single unbreakable block. */
+    -fs-table-paginate: paginate;
+    border: 1px solid #b6bec7;
+  }
+  table.items th, table.items td {
+    border: 1px solid #dde2e7;
+    padding: 2px 3px;
+    /* Deliberately tight: thirteen columns of "INR 3,16,000.00" only fit across A4
+       portrait at this size, and a wrapped amount reads far worse than a small one. */
+    font-size: 7px;
+    vertical-align: middle;
+    word-wrap: break-word;
+  }
+  table.items th {
+    background: #14487f; color: #ffffff; font-weight: bold;
+    border-color: #14487f; font-size: 7px; line-height: 1.25;
+  }
+  /* One <tbody> per line item, so this keeps a row with its description row. */
   table.items tbody { page-break-inside: avoid; }
-  table.items td.image-cell img { max-height: 28px; max-width: 44px; }
-  table.items td.desc-cell { text-align: left; font-style: italic; }
-  table.items tfoot td { font-weight: bold; text-align: right; background: #f0f0f0; }
+  table.items tbody:nth-child(even) td { background: #f7f9fb; }
+  table.items td.image-cell { padding: 2px; }
+  table.items td.image-cell img { max-height: 26px; max-width: 42px; }
+  table.items td.desc-cell {
+    text-align: left; color: #55606b; font-size: 7px;
+    border-top: none; padding-bottom: 4px;
+  }
+  table.items td.desc-cell .hsn { color: #8a939c; }
+  table.items tfoot td {
+    font-weight: bold; text-align: right;
+    background: #e8eef5; color: #14487f; border-color: #b6bec7;
+  }
 
-  table.summary td { border: 1px solid #000; padding: 4px 6px; font-size: 9px; }
-  table.summary td.label { font-weight: bold; background: #f0f0f0; }
-  table.summary tr.words td { font-weight: bold; }
+  /* ---- summary ---- */
 
-  table.people th, table.people td { border: 1px solid #000; padding: 3px 6px; font-size: 9px; text-align: left; }
-  table.people th { background: #e2e2e2; }
-  table.people caption { text-align: left; font-weight: bold; background: #e2e2e2; border: 1px solid #000; padding: 3px 6px; caption-side: top; }
+  table.summary td { border: 1px solid #c8cdd3; padding: 5px 7px; font-size: 8.5px; }
+  table.summary td.label { font-weight: bold; background: #f2f5f8; color: #3c4b5a; width: 20%; }
+  table.summary td.amount { text-align: right; }
+  table.summary tr.net td { background: #14487f; color: #ffffff; border-color: #14487f; font-weight: bold; font-size: 9.5px; }
+  table.summary tr.words td { font-style: italic; color: #3c4b5a; }
 
-  table.terms { margin-top: 6px; }
-  table.terms td { border: 1px solid #000; padding: 4px 6px; font-size: 8px; vertical-align: top; }
-  table.terms td.term-no { width: 4%; text-align: center; }
-  table.terms td.term-title { width: 20%; font-weight: bold; }
-  table.terms tr.terms-caption td { text-align: center; font-weight: bold; background: #e2e2e2; }
-  ul.term-points { margin: 0; padding-left: 14px; }
+  /* ---- people ---- */
 
-  .footer-note { text-align: center; font-size: 8px; color: #333; margin-top: 6px; }
+  table.people th, table.people td { border: 1px solid #c8cdd3; padding: 4px 7px; font-size: 8.5px; text-align: left; }
+  table.people th { background: #f2f5f8; color: #3c4b5a; font-weight: bold; }
+  table.people caption {
+    text-align: left; font-weight: bold; letter-spacing: 0.4px;
+    background: #14487f; color: #ffffff; border: 1px solid #14487f;
+    padding: 4px 7px; caption-side: top;
+  }
+
+  /* ---- terms ---- */
+
+  table.terms { margin-top: 8px; }
+  table.terms td { border: 1px solid #c8cdd3; padding: 4px 7px; font-size: 7.5px; vertical-align: top; }
+  table.terms td.term-no { width: 5%; text-align: center; color: #14487f; font-weight: bold; }
+  table.terms td.term-title { width: 22%; font-weight: bold; color: #3c4b5a; }
+  table.terms tr.terms-caption td {
+    text-align: center; font-weight: bold; letter-spacing: 0.4px;
+    background: #14487f; color: #ffffff; border-color: #14487f;
+  }
+  table.terms tbody { page-break-inside: avoid; }
+  ul.term-points { margin: 0; padding-left: 12px; }
+  ul.term-points li { margin-bottom: 1px; }
+
+  /* ---- closing contact strip ---- */
+
+  .contact-strip {
+    margin-top: 10px; padding: 6px 8px; text-align: center;
+    background: #f2f5f8; border: 1px solid #c8cdd3; font-size: 8px; color: #3c4b5a;
+  }
+  a { color: #14487f; text-decoration: none; }
 </style>
 </head>
 <body>
 
-  <div class="header"><img src="{{logoUrl}}" alt=""/></div>
-  <h1 class="title">Draft Quotation</h1>
+  <!-- Repeated at the top of every page by the @page rule above. -->
+  <div id="pageHeader">
+    <table class="runner">
+      <tr>
+        <td><img src="{{logoUrl}}" alt=""/></td>
+        <td class="right quote-ref">
+          Quote No. <strong>{{quoteNumber}}</strong><br/>
+          Date <strong>{{quoteDate}}</strong>
+        </td>
+      </tr>
+      <tr><td class="rule" colspan="2"></td></tr>
+    </table>
+  </div>
 
-  <table class="meta">
-    <tr>
-      <td class="label">Quote Number :</td><td>{{quoteNumber}}</td>
-      <td class="label">Quote Date :</td><td>{{quoteDate}}</td>
-    </tr>
-  </table>
+  <div id="pageFooter">Quotation {{quoteNumber}}</div>
+
+  <h1 class="title">DRAFT QUOTATION</h1>
 
   <table class="meta">
     <tr><td class="section-caption" colspan="4">CUSTOMER DETAILS</td></tr>
@@ -78,45 +193,73 @@
     </tr>
   </table>
 
-  <h2 class="subtitle">Draft Quotation Details</h2>
+  <h2 class="subtitle">Quotation Details</h2>
 
   <div data-repeat="sections">
     <div class="section-heading">{{sectionName}}</div>
-    <table class="items">
+    <table class="items" data-columns="items">
       <colgroup>
-        <col style="width:4%"/><col style="width:9%"/><col style="width:8%"/><col style="width:4%"/>
-        <col style="width:8%"/><col style="width:8%"/><col style="width:5%"/><col style="width:7%"/>
-        <col style="width:8%"/><col style="width:9%"/><col style="width:5%"/><col style="width:8%"/><col style="width:8%"/>
+        <col data-col="slNo" style="width:3.5%"/>
+        <col data-col="catNo" style="width:8%"/>
+        <col data-col="imageUrl" style="width:5.5%"/>
+        <col data-col="qty" style="width:3.5%"/>
+        <col data-col="mrp" style="width:9%"/>
+        <col data-col="unitPrice" style="width:9%"/>
+        <col data-col="discPercent" style="width:4.5%"/>
+        <col data-col="discAmt" style="width:8%"/>
+        <col data-col="ratePerUnit" style="width:9%"/>
+        <col data-col="taxableAmt" style="width:9.5%"/>
+        <col data-col="gstPercent" style="width:4.5%"/>
+        <col data-col="gstAmt" style="width:9%"/>
+        <col data-col="totalAmt" style="width:9.5%"/>
       </colgroup>
       <thead>
         <tr>
-          <th>S. No.</th><th>Cat. No</th><th>Image</th><th>Qty</th><th>MRP</th><th>Unit Price</th>
-          <th>Dis (%)</th><th>Disc. Amt.</th><th>Rate/Unit</th><th>Total Taxable Amt.</th>
-          <th>GST %</th><th>Total GST/Tax Amt.</th><th>Total Amt.</th>
+          <th data-col="slNo" data-align="center">S. No.</th>
+          <th data-col="catNo" data-align="left">Cat. No</th>
+          <th data-col="imageUrl" data-align="center">Image</th>
+          <th data-col="qty" data-align="center">Qty</th>
+          <th data-col="mrp" data-align="right">MRP</th>
+          <th data-col="unitPrice" data-align="right">Unit Price</th>
+          <th data-col="discPercent" data-align="right">Disc (%)</th>
+          <th data-col="discAmt" data-align="right">Disc. Amt.</th>
+          <th data-col="ratePerUnit" data-align="right">Rate/Unit</th>
+          <th data-col="taxableAmt" data-align="right">Total Taxable Amt.</th>
+          <th data-col="gstPercent" data-align="right">GST %</th>
+          <th data-col="gstAmt" data-align="right">Total GST/Tax Amt.</th>
+          <th data-col="totalAmt" data-align="right">Total Amt.</th>
         </tr>
       </thead>
       <tbody data-repeat="items">
         <tr>
-          <td>{{slNo}}</td>
-          <td>{{catNo}}</td>
-          <td class="image-cell"><img src="{{imageUrl}}" alt=""/></td>
-          <td>{{qty}}</td>
-          <td>{{mrp}}</td>
-          <td>{{unitPrice}}</td>
-          <td>{{discPercent}}</td>
-          <td>{{discAmt}}</td>
-          <td>{{ratePerUnit}}</td>
-          <td>{{taxableAmt}}</td>
-          <td>{{gstPercent}}</td>
-          <td>{{gstAmt}}</td>
-          <td>{{totalAmt}}</td>
+          <td data-col="slNo">{{slNo}}</td>
+          <td data-col="catNo"><a href="{{productUrl}}">{{catNo}}</a></td>
+          <td class="image-cell" data-col="imageUrl"><a href="{{productUrl}}"><img src="{{imageUrl}}" alt=""/></a></td>
+          <td data-col="qty">{{qty}}</td>
+          <td data-col="mrp">{{mrp}}</td>
+          <td data-col="unitPrice">{{unitPrice}}</td>
+          <td data-col="discPercent">{{discPercent}}</td>
+          <td data-col="discAmt">{{discAmt}}</td>
+          <td data-col="ratePerUnit">{{ratePerUnit}}</td>
+          <td data-col="taxableAmt">{{taxableAmt}}</td>
+          <td data-col="gstPercent">{{gstPercent}}</td>
+          <td data-col="gstAmt">{{gstAmt}}</td>
+          <td data-col="totalAmt">{{totalAmt}}</td>
         </tr>
         <tr>
-          <td class="desc-cell" colspan="13">HSN Code / Description - {{hsnCode}} / {{description}}</td>
+          <!-- data-colspan="fill" takes whatever columns are left, so hiding a column
+               above cannot break this row's width. -->
+          <td class="desc-cell" data-colspan="fill">
+            <span class="hsn">HSN {{hsnCode}}</span> &nbsp;{{description}}
+          </td>
         </tr>
       </tbody>
       <tfoot>
-        <tr><td colspan="12">{{sectionName}} TOTAL:</td><td>{{sectionTotal}}</td></tr>
+        <tr>
+          <td data-colspan="fill">{{sectionName}} TOTAL</td>
+          <!-- Two columns wide so a full "INR 12,54,855.00" fits on one line. -->
+          <td colspan="2">{{sectionTotal}}</td>
+        </tr>
       </tfoot>
     </table>
   </div>
@@ -125,16 +268,15 @@
 
   <table class="summary">
     <tr>
-      <td class="label">Total Quantity</td><td>{{totalQuantity}}</td>
-      <td class="label">Total MRP</td><td>{{totalMrp}}</td>
+      <td class="label">Total Quantity</td><td class="amount">{{totalQuantity}}</td>
+      <td class="label">Total MRP</td><td class="amount">{{totalMrp}}</td>
     </tr>
     <tr>
-      <td class="label">Total Taxable Amt.</td><td>{{totalTaxableAmt}}</td>
-      <td class="label">Total TAX</td><td>{{totalTax}}</td>
+      <td class="label">Total Taxable Amt.</td><td class="amount">{{totalTaxableAmt}}</td>
+      <td class="label">Total TAX</td><td class="amount">{{totalTax}}</td>
     </tr>
-    <tr>
-      <td class="label">Net Amt.</td><td>{{netAmt}}</td>
-      <td class="label"></td><td></td>
+    <tr class="net">
+      <td class="label">Net Amount</td><td class="amount" colspan="3">{{netAmt}}</td>
     </tr>
     <tr class="words">
       <td class="label">Amount (In Words)</td><td colspan="3">{{amountInWords}}</td>
@@ -144,23 +286,35 @@
   <table class="people">
     <caption>CUSTOMER CONTACT DETAILS</caption>
     <tr><th>Contact Name</th><th>Contact Email</th><th>Contact Number</th></tr>
-    <tr><td>{{customerContactName}}</td><td>{{customerContactEmail}}</td><td>{{customerContactNumber}}</td></tr>
+    <tr>
+      <td>{{customerContactName}}</td>
+      <td><a href="mailto:{{customerContactEmail}}">{{customerContactEmail}}</a></td>
+      <td>{{customerContactNumber}}</td>
+    </tr>
   </table>
 
   <table class="people">
     <caption>SALES TEAM</caption>
     <tr><th>Sales Person Name</th><th>Email</th><th>Contact Number</th></tr>
-    <tr><td>{{salesPersonName}}</td><td>{{salesPersonEmail}}</td><td>{{salesPersonNumber}}</td></tr>
+    <tr>
+      <td>{{salesPersonName}}</td>
+      <td><a href="mailto:{{salesPersonEmail}}">{{salesPersonEmail}}</a></td>
+      <td>{{salesPersonNumber}}</td>
+    </tr>
   </table>
 
   <table class="people">
     <caption>CREATED BY</caption>
     <tr><th>Name</th><th>Email</th><th>Contact Number</th></tr>
-    <tr><td>{{createdByName}}</td><td>{{createdByEmail}}</td><td>{{createdByNumber}}</td></tr>
+    <tr>
+      <td>{{createdByName}}</td>
+      <td><a href="mailto:{{createdByEmail}}">{{createdByEmail}}</a></td>
+      <td>{{createdByNumber}}</td>
+    </tr>
   </table>
 
   <table class="terms">
-    <tr class="terms-caption"><td colspan="2">Mandatory Terms &amp; Conditions for Quotation</td></tr>
+    <tr class="terms-caption"><td colspan="2">MANDATORY TERMS &amp; CONDITIONS FOR QUOTATION</td></tr>
     <tbody data-repeat="terms">
       <tr>
         <td class="term-no">{{no}}</td>
@@ -177,8 +331,10 @@
     </tbody>
   </table>
 
-  <div class="footer-note">
-    Website :- {{websiteUrl}} &nbsp;|&nbsp; Purchase Assistance Number :- {{purchaseAssistanceNumber}}
+  <div class="contact-strip">
+    Website <a href="{{websiteUrl}}">{{websiteUrl}}</a>
+    &nbsp;|&nbsp;
+    Purchase Assistance <a href="tel:{{purchaseAssistanceNumber}}">{{purchaseAssistanceNumber}}</a>
   </div>
 
 </body>

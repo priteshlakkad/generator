@@ -101,11 +101,115 @@
 		});
 	}
 
-	let tinymceEditor = null;
+	// Whichever editor ends up loading sets this; see load().
+	let getEditorHtml = () => '';
 
-	function getEditorHtml() {
-		return tinymceEditor.getContent();
+	/**
+	 * A template that carries its own <head>/<style>/doctype is a full print document. TinyMCE only
+	 * models body content, so round-tripping one through it silently drops the page rules, colgroup
+	 * widths and print CSS the PDF depends on. Those are edited as raw HTML instead.
+	 */
+	function isFullDocument(html) {
+		return /<!DOCTYPE|<html[\s>]|<head[\s>]|<style[\s>]/i.test(html);
 	}
+
+	// ---- column toggles -------------------------------------------------
+
+	const ALIGNMENTS = ['', 'left', 'center', 'right'];
+
+	function renderColumns(config) {
+		const container = document.getElementById('columnsList');
+		container.textContent = '';
+
+		const groups = (config && config.groups) || [];
+		if (groups.length === 0) {
+			container.innerHTML = '<p class="empty-state">This template has no table marked with ' +
+				'<code>data-columns</code>, so there are no columns to configure.</p>';
+			return;
+		}
+
+		groups.forEach((group) => {
+			const groupEl = document.createElement('div');
+			groupEl.className = 'column-group';
+			groupEl.dataset.groupId = group.id;
+			groupEl.innerHTML =
+				`<div class="column-group-name">${escapeHtml(group.id)}</div>` +
+				'<div class="column-header"><span class="h-toggle"></span><span class="h-field">Field</span>' +
+				'<span class="h-label">Header label</span><span class="h-width">Width %</span>' +
+				'<span class="h-align">Align</span></div>';
+
+			(group.columns || []).forEach((column) => {
+				groupEl.appendChild(renderColumnRow(column));
+			});
+			container.appendChild(groupEl);
+		});
+	}
+
+	function renderColumnRow(column) {
+		const row = document.createElement('div');
+		row.className = 'column-row';
+		row.dataset.field = column.field;
+
+		const visible = column.visible !== false;
+		const options = ALIGNMENTS
+			.map((value) => `<option value="${value}"${value === (column.align || '') ? ' selected' : ''}>` +
+				`${value || 'default'}</option>`)
+			.join('');
+
+		row.innerHTML =
+			`<input type="checkbox" class="column-visible"${visible ? ' checked' : ''}/>` +
+			`<span class="column-field" title="${escapeHtml(column.field)}">${escapeHtml(column.field)}</span>` +
+			`<input type="text" class="column-label" value="${escapeHtml(column.label || '')}"/>` +
+			`<input type="number" class="column-width" step="0.5" min="0" value="${column.width == null ? '' : column.width}"/>` +
+			`<select class="column-align">${options}</select>`;
+
+		const checkbox = row.querySelector('.column-visible');
+		const syncDimming = () => row.classList.toggle('is-hidden', !checkbox.checked);
+		checkbox.addEventListener('change', syncDimming);
+		syncDimming();
+		return row;
+	}
+
+	function collectColumns() {
+		const groups = Array.from(document.querySelectorAll('#columnsList .column-group')).map((groupEl) => ({
+			id: groupEl.dataset.groupId,
+			columns: Array.from(groupEl.querySelectorAll('.column-row')).map((row) => {
+				const width = row.querySelector('.column-width').value.trim();
+				const align = row.querySelector('.column-align').value;
+				return {
+					field: row.dataset.field,
+					label: row.querySelector('.column-label').value,
+					width: width === '' ? null : Number(width),
+					align: align === '' ? null : align,
+					visible: row.querySelector('.column-visible').checked
+				};
+			})
+		}));
+		return { groups };
+	}
+
+	document.getElementById('columnsBtn').addEventListener('click', async () => {
+		try {
+			// Deliberately reads the stored template rather than saving the editor first:
+			// opening this panel must never overwrite a template as a side effect.
+			renderColumns(await Api.getColumns(templateType));
+			document.getElementById('columnsOverlay').classList.remove('hidden');
+		} catch (err) {
+			setStatus(err.message, 'error');
+		}
+	});
+	document.getElementById('closeColumnsBtn').addEventListener('click', () => {
+		document.getElementById('columnsOverlay').classList.add('hidden');
+	});
+	document.getElementById('saveColumnsBtn').addEventListener('click', async () => {
+		setStatus('Saving columns…');
+		try {
+			await Api.saveColumns(templateType, collectColumns());
+			setStatus('Columns saved', 'success');
+		} catch (err) {
+			setStatus(err.message, 'error');
+		}
+	});
 
 	async function save() {
 		await Api.saveHtml(templateType, getEditorHtml());
@@ -181,6 +285,23 @@
 
 		const html = await Api.getHtml(templateType);
 
+		if (isFullDocument(html)) {
+			loadSourceEditor(html);
+		} else {
+			loadRichTextEditor(html);
+		}
+	}
+
+	function loadSourceEditor(html) {
+		const textarea = document.getElementById('editor');
+		textarea.value = html;
+		textarea.spellcheck = false;
+		textarea.classList.add('source-editor');
+		document.getElementById('sourceModeNotice').classList.remove('hidden');
+		getEditorHtml = () => textarea.value;
+	}
+
+	function loadRichTextEditor(html) {
 		tinymce.init({
 			selector: '#editor',
 			license_key: 'gpl',
@@ -208,7 +329,7 @@
 				});
 			}
 		}).then((editors) => {
-			tinymceEditor = editors[0];
+			getEditorHtml = () => editors[0].getContent();
 		});
 	}
 
