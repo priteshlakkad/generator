@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class HtmlMergeServiceTest {
 
-	private final HtmlMergeService service = new HtmlMergeService();
+	private final HtmlMergeService service = new HtmlMergeService(new ColumnConfigService());
 
 	@Test
 	void substitutesTopLevelTokens() {

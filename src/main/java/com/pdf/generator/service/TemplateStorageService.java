@@ -23,10 +23,14 @@ public class TemplateStorageService {
 
 	private static final Pattern VALID_TEMPLATE_TYPE = Pattern.compile("^[a-zA-Z0-9_-]+$");
 
+	/**
+	 * Body-only and free of a {@code <style>} block on purpose: the designer opens templates that
+	 * carry their own stylesheet as raw HTML, and a brand-new template should start in the
+	 * rich-text editor.
+	 */
 	private static final String BLANK_TEMPLATE_HTML = """
-		<style>body { font-family: sans-serif; font-size: 12px; }</style>
-		<h1>New Template</h1>
-		<p>Start typing, or use the toolbar to insert fields and tables.</p>
+		<h1 style="font-family: sans-serif; font-size: 20px;">New Template</h1>
+		<p style="font-family: sans-serif; font-size: 12px;">Start typing, or use the toolbar to insert fields and tables.</p>
 		""";
 
 	private static final String DEFAULT_SAMPLE_JSON = """
@@ -146,6 +150,10 @@ public class TemplateStorageService {
 		if (Files.exists(sampleDataPath(sourceKey))) {
 			saveSampleData(newKey, loadSampleData(sourceKey));
 		}
+		String columns = loadColumns(sourceKey);
+		if (columns != null) {
+			saveColumns(newKey, columns);
+		}
 		return info;
 	}
 
@@ -189,6 +197,52 @@ public class TemplateStorageService {
 		}
 	}
 
+	/** @return the saved column config, or null when the template has never had one saved. */
+	public String loadColumns(String templateType) {
+		String key = validateAndNormalize(templateType);
+		if (!Files.exists(htmlPath(key))) {
+			throw new TemplateNotFoundException(templateType);
+		}
+		Path columns = columnsPath(key);
+		if (!Files.exists(columns)) {
+			return null;
+		}
+		try {
+			return Files.readString(columns, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			throw new IllegalStateException("Failed to read column config for '" + templateType + "'", e);
+		}
+	}
+
+	public void saveColumns(String templateType, String json) {
+		if (json == null || json.isBlank()) {
+			throw new IllegalArgumentException("Column config JSON must not be empty");
+		}
+		String key = validateAndNormalize(templateType);
+		if (!Files.exists(htmlPath(key))) {
+			throw new TemplateNotFoundException(templateType);
+		}
+		writeAtomically(columnsPath(key), key + ".columns.json.tmp", json,
+			"Failed to store column config for '" + templateType + "'");
+	}
+
+	/** Stages to a temp file in the same directory and moves it into place, so a reader never sees a partial write. */
+	private void writeAtomically(Path target, String tempFileName, String content, String failureMessage) {
+		Path temp = target.getParent().resolve(tempFileName);
+		try {
+			Files.writeString(temp, content, StandardCharsets.UTF_8);
+			Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			throw new IllegalStateException(failureMessage, e);
+		} finally {
+			try {
+				Files.deleteIfExists(temp);
+			} catch (IOException ignored) {
+				// best-effort cleanup of the staging file
+			}
+		}
+	}
+
 	private TemplateInfo describe(String key) {
 		Path html = htmlPath(key);
 		try {
@@ -216,5 +270,9 @@ public class TemplateStorageService {
 
 	private Path sampleDataPath(String key) {
 		return templateDir(key).resolve(key + ".sample.json");
+	}
+
+	private Path columnsPath(String key) {
+		return templateDir(key).resolve(key + ".columns.json");
 	}
 }

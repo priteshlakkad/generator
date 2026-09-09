@@ -2,6 +2,8 @@ package com.pdf.generator.controller;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -20,6 +22,8 @@ import com.pdf.generator.service.TemplateStorageService;
 @RequestMapping("/api/pdf")
 public class PdfController {
 
+	private static final Logger log = LoggerFactory.getLogger(PdfController.class);
+
 	private final TemplateStorageService templateStorageService;
 	private final HtmlMergeService htmlMergeService;
 	private final PdfRenderingService pdfRenderingService;
@@ -34,9 +38,18 @@ public class PdfController {
 	@PostMapping("/generate/{templateType}")
 	public ResponseEntity<byte[]> generate(@PathVariable String templateType,
 			@RequestBody(required = false) Map<String, Object> data) {
+		long startedAt = System.currentTimeMillis();
 		String templateHtml = templateStorageService.loadHtml(templateType);
-		String mergedHtml = htmlMergeService.merge(templateHtml, data);
+		String columnsJson = templateStorageService.loadColumns(templateType);
+
+		String mergedHtml = htmlMergeService.merge(templateHtml, data, columnsJson);
+		long mergedAt = System.currentTimeMillis();
+
 		byte[] pdf = pdfRenderingService.render(mergedHtml);
+		long finishedAt = System.currentTimeMillis();
+
+		log.info("Generated '{}' in {} ms (merge {} ms, render {} ms), {} KB",
+			templateType, finishedAt - startedAt, mergedAt - startedAt, finishedAt - mergedAt, pdf.length / 1024);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_PDF);
@@ -48,6 +61,7 @@ public class PdfController {
 	@PostMapping(value = "/preview/{templateType}", produces = MediaType.TEXT_HTML_VALUE)
 	public String preview(@PathVariable String templateType, @RequestBody(required = false) Map<String, Object> data) {
 		String templateHtml = templateStorageService.loadHtml(templateType);
-		return htmlMergeService.merge(templateHtml, data);
+		String columnsJson = templateStorageService.loadColumns(templateType);
+		return htmlMergeService.merge(templateHtml, data, columnsJson);
 	}
 }

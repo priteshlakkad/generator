@@ -44,6 +44,18 @@ const Api = (() => {
 		}).then(handle);
 	}
 
+	function getColumns(templateType) {
+		return fetch(`/api/templates/${encodeURIComponent(templateType)}/columns`).then(handle);
+	}
+
+	function saveColumns(templateType, config) {
+		return fetch(`/api/templates/${encodeURIComponent(templateType)}/columns`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(config)
+		}).then(handle);
+	}
+
 	function getHtml(templateType) {
 		return fetch(`/api/templates/${encodeURIComponent(templateType)}/html`).then(handle);
 	}
@@ -81,6 +93,7 @@ const Api = (() => {
 	return {
 		listTemplates, createBlank, deleteTemplate, copyTemplate,
 		getHtml, saveHtml, getSampleData, saveSampleData,
+		getColumns, saveColumns,
 		generate, preview
 	};
 })();

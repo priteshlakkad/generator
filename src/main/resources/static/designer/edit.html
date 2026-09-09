@@ -12,10 +12,19 @@
 			<span class="title" id="templateTitle"></span>
 			<span class="spacer"></span>
 			<span class="status" id="statusMessage"></span>
+			<button id="columnsBtn">Columns</button>
 			<button id="sampleDataBtn">Sample Data</button>
 			<button id="previewBtn">Save &amp; Preview</button>
 			<button id="downloadBtn">Save &amp; Download PDF</button>
 			<button class="primary" id="saveBtn">Save</button>
+		</div>
+
+		<div class="editor-notice hidden" id="sourceModeNotice">
+			<strong>Source mode.</strong>
+			This template is a complete HTML document (it has its own <code>&lt;head&gt;</code> /
+			<code>&lt;style&gt;</code>), so it is edited as raw HTML. The rich-text editor cannot
+			represent page rules, <code>&lt;colgroup&gt;</code> widths or print CSS and would strip
+			them on save.
 		</div>
 
 		<div class="editor-body">
@@ -39,6 +48,27 @@
 					"Data Table" button in the editor toolbar to insert one).
 				</p>
 				<textarea id="sampleDataJson" rows="16" style="width:100%; font-family:monospace;"></textarea>
+			</div>
+		</div>
+	</div>
+
+	<div class="source-overlay hidden" id="columnsOverlay">
+		<div class="source-panel">
+			<div class="source-panel-header">
+				<strong>Table columns</strong>
+				<span>
+					<button class="primary" id="saveColumnsBtn">Save</button>
+					<button id="closeColumnsBtn">Close</button>
+				</span>
+			</div>
+			<div class="modal-body">
+				<p class="template-meta">
+					Columns are read from the <em>saved</em> template &mdash; every table marked with
+					<code>data-columns</code>, whose cells carry <code>data-col</code>. Turning one off
+					removes it from the PDF and re-flows the remaining widths. A request can override
+					this per quotation by posting <code>"hiddenColumns": ["mrp"]</code>.
+				</p>
+				<div id="columnsList"></div>
 			</div>
 		</div>
 	</div>
