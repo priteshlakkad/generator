@@ -66,6 +66,12 @@ public class RemoteResourceLoader implements FSStreamFactory {
 		return new ByteArrayFSStream(load(uri));
 	}
 
+	/** Raw bytes for the quotation image fallback pipeline; a failed fetch is distinguishable. */
+	byte[] imageBytes(String uri) {
+		byte[] bytes = load(uri);
+		return java.util.Arrays.equals(bytes, TRANSPARENT_PIXEL) ? null : bytes;
+	}
+
 	private byte[] load(String uri) {
 		if (uri == null || uri.isBlank()) {
 			return TRANSPARENT_PIXEL;

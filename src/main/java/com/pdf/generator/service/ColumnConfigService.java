@@ -2,6 +2,7 @@ package com.pdf.generator.service;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.TextNode;
 import org.springframework.stereotype.Service;
 
 import com.pdf.generator.dto.ColumnConfig;
@@ -26,7 +28,7 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Resolves which columns of a template's data tables are visible, and rewrites the DOM to match.
  *
- * <p>The template HTML is always the source of truth for <em>which</em> columns exist: a table opts
+ * <p>The template HTML defines built-in columns; explicitly custom columns live in config. A table opts
  * in with {@code data-columns="<groupId>"} and marks its {@code <col>}/{@code <th>}/{@code <td>}
  * elements with {@code data-col="<field>"}. A saved {@code <templateType>.columns.json} and the
  * request payload then layer visibility/label/width/align on top, so editing the template can never
@@ -62,7 +64,15 @@ public class ColumnConfigService {
 		List<ColumnGroup> groups = deriveFromDocument(doc);
 		groups = applySavedConfig(groups, parse(savedJson));
 		groups = applyPayloadOverrides(groups, payload);
-		return groups;
+		List<ColumnGroup> resolved = new ArrayList<>();
+		for (ColumnGroup group : groups) {
+			List<Map<String, Object>> samples = new ArrayList<>();
+			for (Element table : doc.select("[data-columns]")) {
+				if (table.attr("data-columns").equals(group.id())) samples.addAll(ColumnLayout.sampleRows(table, payload));
+			}
+			resolved.add(ColumnLayout.resolve(group, samples));
+		}
+		return resolved;
 	}
 
 	/**
@@ -90,28 +100,31 @@ public class ColumnConfigService {
 	}
 
 	private List<ColumnGroup> applySavedConfig(List<ColumnGroup> derived, ColumnConfig saved) {
-		if (saved == null || saved.groups().isEmpty()) {
-			return derived;
-		}
-		Map<String, Map<String, ColumnDefinition>> savedByGroup = new LinkedHashMap<>();
-		for (ColumnGroup group : saved.groups()) {
-			Map<String, ColumnDefinition> byField = new LinkedHashMap<>();
-			for (ColumnDefinition column : group.columns()) {
-				if (column.field() != null) {
-					byField.put(column.field(), column);
-				}
-			}
-			savedByGroup.put(group.id(), byField);
-		}
-
+		if (saved == null || saved.groups().isEmpty()) return derived;
+		Map<String, ColumnGroup> savedByGroup = new LinkedHashMap<>();
+		for (ColumnGroup group : saved.groups()) savedByGroup.put(group.id(), group);
 		List<ColumnGroup> result = new ArrayList<>();
 		for (ColumnGroup group : derived) {
-			Map<String, ColumnDefinition> overrides = savedByGroup.getOrDefault(group.id(), Map.of());
+			Map<String, ColumnDefinition> remaining = new LinkedHashMap<>();
+			for (ColumnDefinition column : group.columns()) remaining.put(column.field(), column);
 			List<ColumnDefinition> columns = new ArrayList<>();
-			for (ColumnDefinition column : group.columns()) {
-				columns.add(column.overriddenBy(overrides.get(column.field())));
+			ColumnGroup overrides = savedByGroup.get(group.id());
+			if (overrides != null) {
+				for (ColumnDefinition override : overrides.columns()) {
+					ColumnDefinition original = remaining.remove(override.field());
+					if (original != null) columns.add(original.overriddenBy(override));
+					else if (override.customColumn()) columns.add(override.withResolvedWidth(null));
+				}
 			}
-			result.add(new ColumnGroup(group.id(), columns));
+			columns.addAll(remaining.values());
+			if (overrides == null || !Boolean.TRUE.equals(overrides.ordered())) {
+				Map<String, ColumnDefinition> byField = new LinkedHashMap<>();
+				columns.forEach(column -> byField.put(column.field(), column));
+				columns = new ArrayList<>();
+				for (ColumnDefinition original : group.columns()) columns.add(byField.remove(original.field()));
+				columns.addAll(byField.values());
+			}
+			result.add(new ColumnGroup(group.id(), columns, overrides == null ? null : overrides.ordered()));
 		}
 		return result;
 	}
@@ -175,7 +188,7 @@ public class ColumnConfigService {
 					: globalVisibility.get(column.field());
 				columns.add(override == null ? column : column.withVisible(override));
 			}
-			result.add(new ColumnGroup(group.id(), columns));
+			result.add(new ColumnGroup(group.id(), columns, group.ordered()));
 		}
 		return result;
 	}
@@ -222,6 +235,7 @@ public class ColumnConfigService {
 			}
 		}
 
+		if (group != null) materializeAndOrder(table, group);
 		for (Element marker : ownedElements(table, "[" + COL_ATTR + "]")) {
 			ColumnDefinition column = config.get(marker.attr(COL_ATTR));
 			if (column != null && !column.isVisible()) {
@@ -250,35 +264,63 @@ public class ColumnConfigService {
 	 * instead of leaving the table short.
 	 */
 	private void normalizeColumnWidths(Element table, Map<String, ColumnDefinition> config) {
-		List<Element> cols = ownedElements(table, "col");
-		if (cols.isEmpty()) {
-			return;
-		}
-
-		double[] widths = new double[cols.size()];
-		double total = 0;
-		for (int i = 0; i < cols.size(); i++) {
-			Element col = cols.get(i);
+		for (Element col : ownedElements(table, "col[data-col]")) {
 			ColumnDefinition column = config.get(col.attr(COL_ATTR));
-			Double configured = column != null ? column.width() : null;
-			Double parsed = parseWidthPercent(col.attr("style"));
-			double width = configured != null ? configured : (parsed != null ? parsed : 0);
-			widths[i] = Math.max(width, 0);
-			total += widths[i];
-		}
-
-		// No usable widths anywhere: let the columns share the table evenly.
-		if (total <= 0) {
-			for (int i = 0; i < widths.length; i++) {
-				widths[i] = 100d / widths.length;
+			if (column != null && column.resolvedWidth() != null) {
+				col.attr("style", withDeclaration(col.attr("style"), "width", format(column.resolvedWidth()) + "%"));
 			}
-			total = 100;
 		}
+	}
 
-		for (int i = 0; i < cols.size(); i++) {
-			double scaled = widths[i] * 100d / total;
-			cols.get(i).attr("style", withDeclaration(cols.get(i).attr("style"), "width", format(scaled) + "%"));
+	/** Insert only into unambiguous marked item/header rows; leave description and total rows intact. */
+	private void materializeAndOrder(Element table, ColumnGroup group) {
+		List<Element> rows = ColumnLayout.itemRows(table);
+		List<Element> headers = ownedElements(table, "tr").stream()
+			.filter(row -> row.children().stream().anyMatch(c -> c.tagName().equals("th") && c.hasAttr(COL_ATTR))).toList();
+		List<ColumnDefinition> additions = group.columns().stream().filter(ColumnDefinition::customColumn)
+			.filter(c -> ownedElements(table, "[data-col]").stream().noneMatch(e -> e.attr(COL_ATTR).equals(c.field()))).toList();
+		if (additions.stream().anyMatch(ColumnDefinition::isVisible)) {
+			if (rows.isEmpty() || headers.size() != 1 || !simpleRow(headers.get(0)) || rows.stream().anyMatch(row -> !simpleRow(row))) {
+				throw new IllegalArgumentException("Table " + group.id() + " needs a single marked header and simple repeating item rows to add columns.");
+			}
 		}
+		Element colgroup = ownedElements(table, "colgroup").stream().findFirst().orElse(null);
+		if (colgroup == null) colgroup = table.prependElement("colgroup");
+		for (ColumnDefinition column : group.columns()) {
+			boolean hasCol = ownedElements(table, "col[data-col]").stream().anyMatch(c -> c.attr(COL_ATTR).equals(column.field()));
+			if (!hasCol) colgroup.appendElement("col").attr(COL_ATTR, column.field());
+		}
+		for (ColumnDefinition column : additions) {
+			if (!column.isVisible()) continue;
+			for (Element header : headers) header.appendElement("th").attr(COL_ATTR, column.field()).text(column.label() == null ? column.field() : column.label());
+			for (Element row : rows) {
+				row.appendElement("td").attr(COL_ATTR, column.field()).text("{{" + column.field() + "}}")
+					.attr("style", "word-wrap:break-word;white-space:normal;text-align:" + ("number".equals(column.type()) ? "right" : "left"));
+			}
+		}
+		List<Element> parents = new ArrayList<>(ownedElements(table, "tr"));
+		parents.addAll(ownedElements(table, "colgroup"));
+		for (Element parent : parents) {
+			List<Element> marked = parent.children().stream().filter(c -> c.hasAttr(COL_ATTR)).toList();
+			List<TextNode> slots = new ArrayList<>();
+			for (Element marker : marked) {
+				TextNode slot = new TextNode("");
+				marker.before(slot);
+				marker.remove();
+				slots.add(slot);
+			}
+			List<Element> ordered = new ArrayList<>();
+			for (ColumnDefinition column : group.columns()) {
+				marked.stream().filter(c -> c.attr(COL_ATTR).equals(column.field())).forEach(ordered::add);
+			}
+			marked.stream().filter(c -> !ordered.contains(c)).forEach(ordered::add);
+			for (int i = 0; i < slots.size(); i++) slots.get(i).replaceWith(ordered.get(i));
+		}
+	}
+
+	private boolean simpleRow(Element row) {
+		return !row.children().isEmpty() && row.children().stream().allMatch(cell -> cell.hasAttr(COL_ATTR)
+			&& parsePositiveInt(cell.attr("colspan"), 1) == 1 && parsePositiveInt(cell.attr("rowspan"), 1) == 1);
 	}
 
 	/**
@@ -303,6 +345,26 @@ public class ColumnConfigService {
 			}
 			if (fillCells.isEmpty()) {
 				continue;
+			}
+			List<Element> cells = row.children().stream().filter(c -> c.tagName().equals("td") || c.tagName().equals("th")).toList();
+			if (cells.size() > visibleColumns) {
+				Element first = cells.get(0);
+				for (int i = 1; i < cells.size(); i++) {
+					first.appendText(" ");
+					for (org.jsoup.nodes.Node node : new ArrayList<>(cells.get(i).childNodes())) first.appendChild(node);
+					cells.get(i).remove();
+				}
+				first.attr("colspan", String.valueOf(visibleColumns));
+				continue;
+			}
+			int excess = Math.max(0, claimed + fillCells.size() - visibleColumns);
+			for (Element cell : cells) {
+				if (fillCells.contains(cell)) continue;
+				int span = parsePositiveInt(cell.attr("colspan"), 1);
+				int reduction = Math.min(excess, span - 1);
+				if (reduction > 0) cell.attr("colspan", String.valueOf(span - reduction));
+				claimed -= reduction;
+				excess -= reduction;
 			}
 			int remaining = Math.max(visibleColumns - claimed, fillCells.size());
 			int each = remaining / fillCells.size();
@@ -340,10 +402,60 @@ public class ColumnConfigService {
 			return null;
 		}
 		try {
-			return objectMapper.readValue(json, ColumnConfig.class);
+			ColumnConfig config = objectMapper.readValue(json, ColumnConfig.class);
+			if (config == null) throw new IllegalArgumentException("Column config must be an object.");
+			validate(config);
+			return config;
 		} catch (JacksonException e) {
 			throw new IllegalArgumentException("Column config is not valid JSON: " + e.getMessage(), e);
 		}
+	}
+
+	public void validateForTemplate(String html, String json) {
+		ColumnConfig config = parse(json);
+		Set<String> ids = new HashSet<>();
+		for (ColumnGroup group : deriveFromDocument(Jsoup.parse(html))) ids.add(group.id());
+		if (config != null) for (ColumnGroup group : config.groups()) {
+			if (!ids.contains(group.id())) throw new IllegalArgumentException("Unknown table group: " + group.id());
+		}
+		Document draft = Jsoup.parse(html);
+		apply(draft, effective(draft, json, Map.of()));
+	}
+
+	private void validate(ColumnConfig config) {
+		Set<String> groupIds = new HashSet<>();
+		for (ColumnGroup group : config.groups()) {
+			if (group.id() == null || group.id().isBlank() || !groupIds.add(group.id())) throw new IllegalArgumentException("Column groups must have unique names.");
+			Set<String> fields = new HashSet<>();
+			for (ColumnDefinition column : group.columns()) {
+				if (column.field() == null || column.field().isBlank() || !fields.add(column.field())) throw new IllegalArgumentException("Columns must have unique data fields in " + group.id() + ".");
+				if (column.customColumn() && !column.field().matches("[a-zA-Z_][a-zA-Z0-9_]*")) throw new IllegalArgumentException("New data fields must contain only letters, numbers and underscores, starting with a letter or underscore.");
+				if (column.width() != null && (!Double.isFinite(column.width()) || column.width() < 0 || column.width() > 100)) throw new IllegalArgumentException("Column widths must be between 0 and 100%.");
+				if ("fixed".equals(column.sizing()) && (column.width() == null || column.width() <= 0)) throw new IllegalArgumentException("A fixed column needs a width greater than 0%.");
+				if (column.sizing() != null && !Set.of("auto", "fixed", "proportional").contains(column.sizing())) throw new IllegalArgumentException("Unknown width mode.");
+				if (column.type() != null && !Set.of("text", "number").contains(column.type())) throw new IllegalArgumentException("New columns support text or number values.");
+				if (column.align() != null && !column.align().isBlank() && normalizeAlign(column.align()) == null) throw new IllegalArgumentException("Unknown column alignment.");
+			}
+		}
+	}
+
+	/** Metadata for the popup. Values come from the same repeat scope used for rendering. */
+	public Map<String, Object> designerMetadata(String html, Map<String, Object> data) {
+		Map<String, Object> result = new LinkedHashMap<>();
+		for (Element table : Jsoup.parse(html).select("[data-columns]")) {
+			List<Map<String, Object>> samples = ColumnLayout.sampleRows(table, data);
+			Map<String, String> fields = new LinkedHashMap<>();
+			for (Map<String, Object> row : samples) row.forEach((key, value) -> {
+				if (key.matches("[a-zA-Z_][a-zA-Z0-9_]*") && (value == null || value instanceof String || value instanceof Number || value instanceof Boolean)) {
+					fields.putIfAbsent(key, value instanceof Number ? "number" : "text");
+				}
+			});
+			List<Element> headers = ownedElements(table, "tr").stream().filter(row -> row.children().stream().anyMatch(c -> c.tagName().equals("th") && c.hasAttr(COL_ATTR))).toList();
+			List<Element> rows = ColumnLayout.itemRows(table);
+			boolean canAdd = headers.size() == 1 && simpleRow(headers.get(0)) && !rows.isEmpty() && rows.stream().allMatch(this::simpleRow);
+			result.put(table.attr("data-columns"), Map.of("fields", fields, "canAdd", canAdd));
+		}
+		return result;
 	}
 
 	public String toJson(List<ColumnGroup> groups) {
@@ -369,7 +481,7 @@ public class ColumnConfigService {
 	}
 
 	private Element findHeaderCell(Element table, String field) {
-		List<Element> headers = ownedElements(table, "th[" + COL_ATTR + "=" + field + "]");
+		List<Element> headers = ownedElements(table, "th[data-col]").stream().filter(cell -> cell.attr(COL_ATTR).equals(field)).toList();
 		return headers.isEmpty() ? null : headers.get(0);
 	}
 

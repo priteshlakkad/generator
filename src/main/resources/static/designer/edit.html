@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Template Editor</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Quotation View</title>
 	<link rel="stylesheet" href="css/designer.css">
 </head>
 <body>
@@ -11,13 +12,25 @@
 			<a href="index.html">&larr; Templates</a>
 			<span class="title" id="templateTitle"></span>
 			<span class="spacer"></span>
-			<span class="status" id="statusMessage"></span>
-			<button id="columnsBtn">Columns</button>
-			<button id="sampleDataBtn">Sample Data</button>
-			<button id="previewBtn">Save &amp; Preview</button>
-			<button id="downloadBtn">Save &amp; Download PDF</button>
-			<button class="primary" id="saveBtn">Save</button>
+			<span class="status" id="statusMessage" role="status" aria-live="polite"></span>
+			<a id="modeLink" class="button-link">Edit Template</a>
+			<button id="columnsBtn" disabled>Columns</button>
+			<button id="sampleDataBtn" disabled>Sample Data</button>
+			<button id="refreshBtn" disabled>Refresh</button>
+			<button id="previewBtn" class="hidden" disabled>Save &amp; Preview</button>
+			<button id="downloadBtn" class="primary" disabled>Download PDF</button>
+			<button class="primary hidden" id="saveBtn" disabled>Save</button>
 		</div>
+
+		<main class="quotation-view" id="quotationView">
+			<div class="quotation-heading">
+				<h1>Quotation View</h1>
+				<p>Showing saved sample data</p>
+			</div>
+			<p id="viewMessage" class="view-message" role="status">Loading quotation…</p>
+			<iframe id="quotationFrame" class="quotation-frame hidden" title="Rendered quotation"
+				sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
+		</main>
 
 		<div class="editor-notice hidden" id="sourceModeNotice">
 			<strong>Source mode.</strong>
@@ -27,7 +40,7 @@
 			them on save.
 		</div>
 
-		<div class="editor-body">
+		<div class="editor-body hidden" id="editorBody">
 			<textarea id="editor"></textarea>
 		</div>
 	</div>
@@ -52,23 +65,28 @@
 		</div>
 	</div>
 
-	<div class="source-overlay hidden" id="columnsOverlay">
-		<div class="source-panel">
+	<div class="source-overlay hidden" id="columnsOverlay" role="dialog" aria-modal="true" aria-labelledby="columnsTitle">
+		<div class="source-panel columns-panel">
 			<div class="source-panel-header">
-				<strong>Table columns</strong>
-				<span>
-					<button class="primary" id="saveColumnsBtn">Save</button>
-					<button id="closeColumnsBtn">Close</button>
-				</span>
+				<strong id="columnsTitle">Manage Columns</strong>
+				<button id="closeColumnsBtn">Cancel</button>
 			</div>
-			<div class="modal-body">
-				<p class="template-meta">
-					Columns are read from the <em>saved</em> template &mdash; every table marked with
-					<code>data-columns</code>, whose cells carry <code>data-col</code>. Turning one off
-					removes it from the PDF and re-flows the remaining widths. A request can override
-					this per quotation by posting <code>"hiddenColumns": ["mrp"]</code>.
-				</p>
-				<div id="columnsList"></div>
+			<div class="columns-workspace">
+				<div class="columns-settings">
+					<p class="template-meta">Add or restore columns, change their order, and choose Auto or fixed widths. Changes are saved for this template only when you select Save &amp; Apply.</p>
+					<div id="columnsList"></div>
+				</div>
+				<div class="columns-preview">
+					<strong>Draft quotation</strong>
+					<p class="template-meta">Sample data preview. Download the PDF after saving to check print layout.</p>
+					<p id="columnsStatus" role="status" aria-live="polite"></p>
+					<p id="columnsWarnings" class="template-meta"></p>
+					<iframe id="columnsPreviewFrame" title="Draft column layout" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
+				</div>
+			</div>
+			<div class="columns-footer">
+				<span class="template-meta">Removed columns remain available to restore. Missing field values appear blank.</span>
+				<button class="primary" id="saveColumnsBtn" disabled>Save &amp; Apply</button>
 			</div>
 		</div>
 	</div>
@@ -79,12 +97,13 @@
 				<strong>Preview</strong>
 				<button id="closePreviewBtn">Close</button>
 			</div>
-			<iframe id="previewFrame" style="flex:1; border:none; width:100%; height:100%;"></iframe>
+			<iframe id="previewFrame" title="Quotation preview" sandbox="allow-popups allow-popups-to-escape-sandbox" style="flex:1; border:none; width:100%; height:100%;"></iframe>
 		</div>
 	</div>
 
 	<script src="vendor/tinymce/tinymce.min.js"></script>
 	<script src="js/api.js"></script>
+	<script src="js/columns.js"></script>
 	<script src="js/editor.js"></script>
 </body>
 </html>

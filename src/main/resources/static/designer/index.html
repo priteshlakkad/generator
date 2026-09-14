@@ -51,6 +51,7 @@
 						<div class="template-meta">${formatSize(t.sizeBytes)} &middot; updated ${formatDate(t.lastModifiedEpochMillis)}</div>
 					</div>
 					<div>
+						<a class="button-link" href="edit.html?type=${encodeURIComponent(t.templateType)}">View Quotation</a>
 						<button data-sample="${t.templateType}">View Sample JSON</button>
 						<button data-copy="${t.templateType}">Copy</button>
 						<button data-delete="${t.templateType}" class="danger">Delete</button>
@@ -104,7 +105,7 @@
 			if (!name) return;
 			try {
 				await Api.createBlank(name);
-				window.location.href = `edit.html?type=${encodeURIComponent(name)}`;
+				window.location.href = `edit.html?type=${encodeURIComponent(name)}&mode=edit`;
 			} catch (err) {
 				alert('Could not create template: ' + err.message);
 			}

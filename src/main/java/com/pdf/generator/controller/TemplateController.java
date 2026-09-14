@@ -98,7 +98,7 @@ public class TemplateController {
 	@PutMapping(value = "/{templateType}/columns", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String saveColumns(@PathVariable String templateType, @RequestBody String json) {
 		// Parse before writing so a malformed body is a 400 rather than a corrupt config on disk.
-		columnConfigService.parse(json);
+		columnConfigService.validateForTemplate(templateStorageService.loadHtml(templateType), json);
 		templateStorageService.saveColumns(templateType, json);
 		return json;
 	}

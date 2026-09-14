@@ -1,18 +1,11 @@
 package com.pdf.generator.dto;
 
 import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * The columns of one table in a template. The {@code id} matches the table's
- * {@code data-columns} attribute, so a template can carry several independently
- * configurable tables.
- */
+/** A table's columns. Ordered opts into config order; older partial overrides keep template order. */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ColumnGroup(String id, List<ColumnDefinition> columns) {
-
-	public ColumnGroup {
-		columns = columns == null ? List.of() : List.copyOf(columns);
-	}
+public record ColumnGroup(String id, List<ColumnDefinition> columns, Boolean ordered) {
+    public ColumnGroup(String id, List<ColumnDefinition> columns) { this(id, columns, null); }
+    public ColumnGroup { columns = columns == null ? List.of() : List.copyOf(columns); }
 }

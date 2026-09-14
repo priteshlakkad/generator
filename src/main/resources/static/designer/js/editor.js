@@ -1,6 +1,8 @@
 (function () {
 	const params = new URLSearchParams(window.location.search);
 	const templateType = params.get('type');
+	const editing = params.get('mode') === 'edit';
+	let quotationData = {};
 	const statusEl = document.getElementById('statusMessage');
 
 	if (!templateType) {
@@ -9,6 +11,15 @@
 	}
 
 	document.getElementById('templateTitle').textContent = templateType;
+	document.title = `${templateType} — ${editing ? 'Template Editor' : 'Quotation View'}`;
+	const modeLink = document.getElementById('modeLink');
+	modeLink.textContent = editing ? 'View Quotation' : 'Edit Template';
+	modeLink.href = `edit.html?type=${encodeURIComponent(templateType)}${editing ? '' : '&mode=edit'}`;
+	document.getElementById('quotationView').classList.toggle('hidden', editing);
+	document.getElementById('editorBody').classList.toggle('hidden', !editing);
+	document.getElementById('refreshBtn').classList.toggle('hidden', editing);
+	['saveBtn', 'previewBtn'].forEach((id) => document.getElementById(id).classList.toggle('hidden', !editing));
+	document.getElementById('downloadBtn').textContent = editing ? 'Save & Download PDF' : 'Download PDF';
 
 	function setStatus(message, kind) {
 		statusEl.textContent = message;
@@ -18,7 +29,7 @@
 	function escapeHtml(text) {
 		const div = document.createElement('div');
 		div.textContent = text;
-		return div.innerHTML;
+		return div.innerHTML.replace(/"/g, '&quot;');
 	}
 
 	function getSampleData() {
@@ -113,105 +124,23 @@
 		return /<!DOCTYPE|<html[\s>]|<head[\s>]|<style[\s>]/i.test(html);
 	}
 
-	// ---- column toggles -------------------------------------------------
-
-	const ALIGNMENTS = ['', 'left', 'center', 'right'];
-
-	function renderColumns(config) {
-		const container = document.getElementById('columnsList');
-		container.textContent = '';
-
-		const groups = (config && config.groups) || [];
-		if (groups.length === 0) {
-			container.innerHTML = '<p class="empty-state">This template has no table marked with ' +
-				'<code>data-columns</code>, so there are no columns to configure.</p>';
-			return;
-		}
-
-		groups.forEach((group) => {
-			const groupEl = document.createElement('div');
-			groupEl.className = 'column-group';
-			groupEl.dataset.groupId = group.id;
-			groupEl.innerHTML =
-				`<div class="column-group-name">${escapeHtml(group.id)}</div>` +
-				'<div class="column-header"><span class="h-toggle"></span><span class="h-field">Field</span>' +
-				'<span class="h-label">Header label</span><span class="h-width">Width %</span>' +
-				'<span class="h-align">Align</span></div>';
-
-			(group.columns || []).forEach((column) => {
-				groupEl.appendChild(renderColumnRow(column));
-			});
-			container.appendChild(groupEl);
-		});
-	}
-
-	function renderColumnRow(column) {
-		const row = document.createElement('div');
-		row.className = 'column-row';
-		row.dataset.field = column.field;
-
-		const visible = column.visible !== false;
-		const options = ALIGNMENTS
-			.map((value) => `<option value="${value}"${value === (column.align || '') ? ' selected' : ''}>` +
-				`${value || 'default'}</option>`)
-			.join('');
-
-		row.innerHTML =
-			`<input type="checkbox" class="column-visible"${visible ? ' checked' : ''}/>` +
-			`<span class="column-field" title="${escapeHtml(column.field)}">${escapeHtml(column.field)}</span>` +
-			`<input type="text" class="column-label" value="${escapeHtml(column.label || '')}"/>` +
-			`<input type="number" class="column-width" step="0.5" min="0" value="${column.width == null ? '' : column.width}"/>` +
-			`<select class="column-align">${options}</select>`;
-
-		const checkbox = row.querySelector('.column-visible');
-		const syncDimming = () => row.classList.toggle('is-hidden', !checkbox.checked);
-		checkbox.addEventListener('change', syncDimming);
-		syncDimming();
-		return row;
-	}
-
-	function collectColumns() {
-		const groups = Array.from(document.querySelectorAll('#columnsList .column-group')).map((groupEl) => ({
-			id: groupEl.dataset.groupId,
-			columns: Array.from(groupEl.querySelectorAll('.column-row')).map((row) => {
-				const width = row.querySelector('.column-width').value.trim();
-				const align = row.querySelector('.column-align').value;
-				return {
-					field: row.dataset.field,
-					label: row.querySelector('.column-label').value,
-					width: width === '' ? null : Number(width),
-					align: align === '' ? null : align,
-					visible: row.querySelector('.column-visible').checked
-				};
-			})
-		}));
-		return { groups };
-	}
-
 	document.getElementById('columnsBtn').addEventListener('click', async () => {
 		try {
-			// Deliberately reads the stored template rather than saving the editor first:
-			// opening this panel must never overwrite a template as a side effect.
-			renderColumns(await Api.getColumns(templateType));
-			document.getElementById('columnsOverlay').classList.remove('hidden');
-		} catch (err) {
-			setStatus(err.message, 'error');
-		}
-	});
-	document.getElementById('closeColumnsBtn').addEventListener('click', () => {
-		document.getElementById('columnsOverlay').classList.add('hidden');
-	});
-	document.getElementById('saveColumnsBtn').addEventListener('click', async () => {
-		setStatus('Saving columns…');
-		try {
-			await Api.saveColumns(templateType, collectColumns());
-			setStatus('Columns saved', 'success');
+			await ColumnManager.open({
+				templateType,
+				data: editing ? getSampleData() : quotationData,
+				onSave: async () => {
+					if (!editing) await renderQuotation();
+					setStatus('Columns saved', 'success');
+				}
+			});
 		} catch (err) {
 			setStatus(err.message, 'error');
 		}
 	});
 
 	async function save() {
+		if (!editing) return;
 		await Api.saveHtml(templateType, getEditorHtml());
 	}
 
@@ -235,6 +164,9 @@
 		try {
 			const data = getSampleData();
 			await Api.saveSampleData(templateType, JSON.stringify(data));
+			quotationData = data;
+			if (!editing) await renderQuotation();
+			document.getElementById('sampleDataOverlay').classList.add('hidden');
 			setStatus('Sample data saved', 'success');
 		} catch (err) {
 			setStatus(err.message, 'error');
@@ -261,9 +193,10 @@
 	});
 
 	document.getElementById('downloadBtn').addEventListener('click', async () => {
-		setStatus('Saving…');
+		const button = document.getElementById('downloadBtn');
+		button.disabled = true;
 		try {
-			const data = getSampleData();
+			const data = editing ? getSampleData() : quotationData;
 			await save();
 			setStatus('Generating PDF…');
 			const blob = await Api.generate(templateType, data);
@@ -271,25 +204,64 @@
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = templateType + '.pdf';
+			document.body.appendChild(a);
 			a.click();
-			URL.revokeObjectURL(url);
-			setStatus('Saved', 'success');
+			a.remove();
+			setTimeout(() => URL.revokeObjectURL(url), 60000);
+			setStatus('PDF downloaded', 'success');
 		} catch (err) {
 			setStatus(err.message, 'error');
+		} finally {
+			button.disabled = false;
+		}
+	});
+
+	async function renderQuotation() {
+		const message = document.getElementById('viewMessage');
+		const frame = document.getElementById('quotationFrame');
+		message.textContent = 'Loading quotation…';
+		message.className = 'view-message';
+		frame.classList.add('hidden');
+		try {
+			frame.srcdoc = await Api.preview(templateType, quotationData);
+			frame.classList.remove('hidden');
+			message.classList.add('hidden');
+		} catch (err) {
+			message.textContent = `Could not load quotation: ${err.message}. Use Refresh to try again.`;
+			message.className = 'view-message error';
+			throw err;
+		}
+	}
+
+	document.getElementById('refreshBtn').addEventListener('click', async () => {
+		try {
+			await load();
+		} catch (err) {
+			showLoadError(err);
 		}
 	});
 
 	async function load() {
+		setStatus('Loading…');
+		['columnsBtn', 'sampleDataBtn', 'refreshBtn', 'previewBtn', 'downloadBtn', 'saveBtn']
+			.forEach((id) => { document.getElementById(id).disabled = true; });
 		const sampleData = await Api.getSampleData(templateType);
+		quotationData = sampleData;
 		document.getElementById('sampleDataJson').value = JSON.stringify(sampleData, null, 2);
 
-		const html = await Api.getHtml(templateType);
-
-		if (isFullDocument(html)) {
-			loadSourceEditor(html);
+		if (editing) {
+			const html = await Api.getHtml(templateType);
+			if (isFullDocument(html)) {
+				loadSourceEditor(html);
+			} else {
+				await loadRichTextEditor(html);
+			}
 		} else {
-			loadRichTextEditor(html);
+			await renderQuotation();
 		}
+		['columnsBtn', 'sampleDataBtn', 'refreshBtn', 'previewBtn', 'downloadBtn', 'saveBtn']
+			.forEach((id) => { document.getElementById(id).disabled = false; });
+		setStatus('');
 	}
 
 	function loadSourceEditor(html) {
@@ -302,7 +274,7 @@
 	}
 
 	function loadRichTextEditor(html) {
-		tinymce.init({
+		return tinymce.init({
 			selector: '#editor',
 			license_key: 'gpl',
 			base_url: 'vendor/tinymce',
@@ -333,5 +305,16 @@
 		});
 	}
 
-	load().catch((err) => setStatus(err.message, 'error'));
+	function showLoadError(err) {
+		setStatus(err.message, 'error');
+		if (!editing) {
+			document.getElementById('quotationFrame').classList.add('hidden');
+			const message = document.getElementById('viewMessage');
+			message.textContent = `Could not load quotation: ${err.message}. Use Refresh to try again.`;
+			message.className = 'view-message error';
+			document.getElementById('refreshBtn').disabled = false;
+		}
+	}
+
+	load().catch(showLoadError);
 })();

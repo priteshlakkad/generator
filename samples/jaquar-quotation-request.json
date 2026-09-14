@@ -1,5 +1,5 @@
 {
-  "logoUrl": "https://www.jaquar.com/images/jaquar-logo.png",
+  "logoUrl": "/quotation-assets/jaquar/jaquar-logo.png",
   "quoteNumber": "Q-560122",
   "quoteDate": "07/08/2026",
   "accountCode": "CUS-798033",
@@ -18,8 +18,8 @@
         {
           "slNo": 1,
           "catNo": "ABT-WHT-FSBTCF2011",
-          "productUrl": "https://www.jaquar.com/en/product/abt-wht-fsbtcf2011",
-          "imageUrl": "https://example.com/images/products/fsbtcf2011.png",
+          "productUrl": "https://jaquar.ru/catalog/vanny/abt-wht-fsbtcf2011",
+          "imageUrl": "https://jaquar.ru/uploads/products/images/11736/abt-wht-fsbtcf2011.jpg",
           "qty": 1,
           "mrp": "INR 3,16,000.00",
           "unitPrice": "INR 2,69,000.00",
@@ -36,8 +36,8 @@
         {
           "slNo": 2,
           "catNo": "ABT-WHT-FSBTLX1001",
-          "productUrl": "https://www.jaquar.com/en/product/abt-wht-fsbtlx1001",
-          "imageUrl": "https://example.com/images/products/fsbtlx1001.png",
+          "productUrl": "https://www.artize.com/in/lexa-freestanding-bathtub",
+          "imageUrl": "https://www.artize.com/in/image/catalog/2022/ABT-WHT-FSBTLX1001.jpg",
           "qty": 1,
           "mrp": "INR 1,84,000.00",
           "unitPrice": "INR 1,56,000.00",
@@ -54,8 +54,8 @@
         {
           "slNo": 3,
           "catNo": "ABT-WHT-FSBTTA3011",
-          "productUrl": "https://www.jaquar.com/en/product/abt-wht-fsbtta3011",
-          "imageUrl": "https://example.com/images/products/fsbtta3011.png",
+          "productUrl": "https://www.artize.com/in/tiaara-solid-surface-freestanding-bathtub",
+          "imageUrl": "https://jaquar.ru/uploads/products/images/11738/abt-wht-fsbtta3011.jpg",
           "qty": 1,
           "mrp": "INR 3,99,000.00",
           "unitPrice": "INR 3,39,000.00",
@@ -78,8 +78,8 @@
         {
           "slNo": 11,
           "catNo": "ABT-WHT-TIAARA190X",
-          "productUrl": "https://www.jaquar.com/en/product/abt-wht-tiaara190x",
-          "imageUrl": "https://example.com/images/products/tiaara190x.png",
+          "productUrl": "https://www.artize.com/in/abt-wht-tiaara190x",
+          "imageUrl": "https://jaquar.ru/uploads/products/images/11743/abt-wht-tiaara190x.jpg",
           "qty": 1,
           "mrp": "INR 55,500.00",
           "unitPrice": "INR 47,200.00",
@@ -96,8 +96,8 @@
         {
           "slNo": 25,
           "catNo": "ACI-WHT-LTRK3L1MTRBL",
-          "productUrl": "https://www.jaquar.com/en/product/aci-wht-ltrk3l1mtrbl",
-          "imageUrl": "https://example.com/images/products/ltrk3l1mtrbl.png",
+          "productUrl": "https://electricalconnects.com/frontend/images/product_catalogues/jaquar-lighting-commercial-catalogue-2025.pdf#page=209",
+          "imageUrl": "",
           "qty": 1,
           "mrp": "INR 1,010.00",
           "unitPrice": "INR 855.00",
@@ -109,7 +109,8 @@
           "gstAmt": "INR 110.86",
           "totalAmt": "INR 726.75",
           "hsnCode": "94054900",
-          "description": "ONE-METER 3-LINES TRACK, BLACK FINISH"
+          "description": "ONE-METER 3-LINES TRACK, BLACK FINISH",
+          "contentUrl": ""
         }
       ]
     }

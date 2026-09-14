@@ -14,6 +14,9 @@ public class PdfRenderProperties {
 	 */
 	private String baseUri = "";
 
+	/** Optional product images named by catalogue code; checked before bundled assets and URLs. */
+	private String imagesDir = "./image-store";
+
 	private int connectTimeoutMs = 3000;
 
 	private int readTimeoutMs = 5000;
@@ -30,6 +33,10 @@ public class PdfRenderProperties {
 	 * internal addresses.
 	 */
 	private List<String> allowedHosts = new ArrayList<>();
+
+	public String getImagesDir() { return imagesDir; }
+
+	public void setImagesDir(String imagesDir) { this.imagesDir = imagesDir; }
 
 	public String getBaseUri() {
 		return baseUri;

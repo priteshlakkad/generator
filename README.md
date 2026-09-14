@@ -16,8 +16,17 @@ template-store/
   <templateType>/
     <templateType>.html          # the HTML template
     <templateType>.sample.json   # saved sample/test data for that template
-    <templateType>.columns.json  # optional: which table columns are visible
+    <templateType>.columns.json  # optional: columns, order, visibility and sizing
 ```
+
+The repository includes three Jaquar examples: `jaquar-quotation` for the original compact
+quotation, `jaquar-quotation-enhanced` for a customer-facing project quotation, and
+`jaquar-quotation-product-detailed` for a landscape, product-focused BOQ with 18 columns and 100
+sample line items. The enhanced templates use [Jaquar green](https://www.brandcolorcode.com/jaquar)
+(`#09565F`), the official logo lock-up, commercial and fulfilment fields, approvals, and stable
+demonstration images on selected lines. The detailed template intentionally omits the customer,
+delivery-address, and authorised-dealer sections; its duplicate classpath sample is stored at
+`src/main/resources/samples/jaquar-quotation-product-detailed.sample.json`.
 
 ## Tech stack
 
@@ -60,20 +69,81 @@ java -jar target/generator-0.0.1-SNAPSHOT.jar
 Open **`http://localhost:8080/designer/index.html`** in a browser to:
 
 - List all stored templates (name, size, last modified)
-- Create a new blank template
-- Open a template in a WYSIWYG editor (TinyMCE) with toolbar buttons to insert merge fields (`{{field}}`) and repeating data tables (`data-repeat` rows)
+- Open any template by name or **View Quotation** to see a formatted HTML quotation populated with its saved sample data, without opening the source editor
+- **Download PDF** directly from the quotation view; **Refresh** reloads saved sample data and the latest template/column settings
+- **Edit Template** opens the template editor; **View Quotation** returns to the saved quotation (save template edits before returning)
+- Create a new blank template, which opens directly in the editor
+- Edit body-only templates in a WYSIWYG editor (TinyMCE) with toolbar buttons to insert merge fields (`{{field}}`) and repeating data tables (`data-repeat` rows)
 - Edit and save the sample JSON data used for previews
 - **Save & Preview** — merges the template with the sample data and renders it in an iframe
 - **Save & Download PDF** — merges and renders a PDF, downloaded directly from the browser
-- **Columns** — toggle each data-table column on or off, and edit its header label, width and alignment
+- **Columns** — opens **Manage Columns** in both the quotation view and editor: add/restore/remove columns, reorder them, edit headings and alignment, and choose Auto or fixed widths. A draft preview shows calculated widths before **Save & Apply** refreshes the quotation
 - Copy or delete a template
 
-Templates that carry their own `<head>` / `<style>` (like the shipped quotation) open in a **raw
-HTML source editor** rather than TinyMCE. The rich-text editor cannot represent `@page` rules,
+The quotation view uses the saved sample data for each template; it does not store individual
+quotation records. Saving sample data from this view also refreshes the quotation. HTML is shown
+as a continuous browser document; use the downloaded PDF to check final pagination and print layout.
+Viewing or downloading from this view does not save or modify the template HTML.
+
+Under **Edit Template**, templates that carry their own `<head>` / `<style>` (like the shipped
+quotation) open in a **raw HTML source editor** rather than TinyMCE. The rich-text editor cannot represent `@page` rules,
 `<colgroup>` widths or print CSS and would strip them on save; source mode round-trips the document
 unchanged. Body-only templates still get the WYSIWYG editor.
 
-## Toggleable table columns
+## Manage Columns
+
+Open a quotation and click **Columns**. Each table has independent settings:
+
+- **Add Column**: choose a scalar field from the sample data or enter a new field name, heading,
+  and Text/Number type. New columns use Auto sizing; numbers default to right alignment.
+  Fields are resolved from the repeating item's context (including nested `sections` → `items`).
+  Missing values are blank. Number type guides sizing/alignment; values are displayed as supplied,
+  without calculations or currency conversion.
+- **Remove / Restore**: removal hides a column while retaining its definition. At least one column
+  must remain visible. The HTML template and sample data are not changed.
+- **↑ / ↓**: move a column left or right in the resulting table.
+- **Proportional**: preserves legacy width ratios. Existing templates keep this mode until changed.
+- **Auto**: estimates space from headings, field types, and representative values from up to 100
+  sampled items per table prototype. An 80th-percentile length with a character cap limits the
+  influence of long outliers. Compact fields receive smaller minimum widths; text can wrap.
+- **Fixed %**: reserves that percentage; remaining space goes to flexible columns. **Auto size all**
+  resets every column in the group to Auto. Fixed widths and minimum flexible widths must fit
+  within 100%; if every visible column is fixed, their widths must total 100%.
+- The draft preview and **actual** percentages update after edits. **Cancel** discards the draft;
+  **Save & Apply** validates and saves the configuration for this template. Previewing never writes
+  template HTML or column settings. Request-level visibility overrides are flagged in the popup.
+
+The same deterministic layout calculation drives the draft, HTML quotation, and PDF. Widths sum to
+100% (to two decimal places); preferred maximum widths can be exceeded when fewer columns need to
+fill the table. Auto sizing is an estimate, not a guarantee that arbitrary content fits: verify the
+PDF's pagination and print layout. Impossible fixed/minimum width combinations return an actionable
+error instead of silently shrinking fixed columns.
+
+Built-in columns remain defined by template HTML. Explicitly added columns are stored with
+`custom: true` in the column configuration and materialized during rendering. Adding columns is
+supported for tables with one marked header row and simple marked repeating item rows (no merged
+cells in those rows). Description and totals rows using `data-colspan="fill"` are adjusted separately;
+when only one column remains, total labels and values are combined into that cell. Arbitrary custom
+image columns, expressions and calculated values are not supported by this first version.
+
+Example saved configuration (unlisted built-in columns retain their defaults):
+
+```json
+{
+  "groups": [{
+    "id": "items",
+    "ordered": true,
+    "columns": [
+      { "field": "brand", "label": "Brand", "custom": true, "type": "text", "sizing": "auto", "visible": true },
+      { "field": "qty", "label": "Qty", "sizing": "fixed", "width": 6, "visible": true },
+      { "field": "mrp", "visible": false }
+    ]
+  }]
+}
+```
+
+`ordered: true` applies the configuration's column order; legacy partial overrides retain template
+order. `resolvedWidth` in API responses is calculated output, not a saved width preference.
 
 A table opts in by marking itself and its cells, so nothing else in the template has to know the
 column count:
@@ -100,7 +170,7 @@ column count:
 | `data-align="left\|center\|right"` | `<th>` | Default alignment for the column |
 | `data-colspan="fill"` | `<td>`, `<th>` | Span every column not claimed by sibling cells in that row |
 
-Hiding a column removes its `<col>`, `<th>` and `<td>`, rescales the remaining widths back to 100%,
+Hiding a column removes its `<col>`, `<th>` and `<td>`, recalculates the remaining widths,
 and recomputes every `fill` colspan — so there are no hardcoded colspans to keep in sync. These
 authoring attributes are stripped from the rendered output.
 
@@ -143,11 +213,12 @@ All endpoints return errors as JSON: `{ "error": "<message>" }`, with `404` for 
 | GET | `/api/templates/{templateType}/html` | — | raw HTML (`text/plain`) | Fetch a template's raw HTML |
 | PUT | `/api/templates/{templateType}/html` | raw HTML (`text/plain`) | `TemplateInfo` | Save/overwrite a template's HTML |
 | DELETE | `/api/templates/{templateType}` | — | 204 | Delete a template |
-| POST | `/api/templates/{templateType}/copy?newTemplateType={name}` | — | `TemplateInfo` (201) | Clone a template (HTML + sample data) under a new name |
+| POST | `/api/templates/{templateType}/copy?newTemplateType={name}` | — | `TemplateInfo` (201) | Clone a template (HTML + sample data + column settings) under a new name |
 | GET | `/api/templates/{templateType}/sample` | — | JSON | Fetch saved sample data (or a built-in default if none saved) |
 | PUT | `/api/templates/{templateType}/sample` | JSON | JSON | Save sample/test merge data for a template |
-| GET | `/api/templates/{templateType}/columns` | — | JSON | Effective column config: the columns the template declares, with saved overrides applied |
-| PUT | `/api/templates/{templateType}/columns` | JSON | JSON | Save the column config (visibility, label, width, alignment) |
+| GET | `/api/templates/{templateType}/columns` | — | JSON | Effective built-in/custom column config, saved order and calculated widths (without sample data) |
+| PUT | `/api/templates/{templateType}/columns` | JSON | JSON | Validate and save column definitions, order, visibility and sizing |
+| POST | `/api/templates/{templateType}/columns/preview` | `{ "config": { "groups": [...] }, "data": { ... } }` | JSON | Read-only draft: merged `html`, effective `config` with `resolvedWidth`, field `metadata`, and `warnings` |
 
 ### Example
 
@@ -174,6 +245,7 @@ Set in [`application.properties`](src/main/resources/application.properties):
 | Property | Default | Description |
 |---|---|---|
 | `pdf.templates.dir` | `./template-store` | Filesystem directory where templates are stored |
+| `pdf.render.images-dir` | `./image-store` | Optional local catalogue-code image directory for Jaquar quotations |
 | `pdf.render.base-uri` | *(blank)* | Base URI relative resource paths resolve against, e.g. `https://portal.example.com/`. Blank requires absolute URLs |
 | `pdf.render.connect-timeout-ms` | `3000` | Connect timeout when fetching a remote image |
 | `pdf.render.read-timeout-ms` | `5000` | Read timeout when fetching a remote image |
@@ -201,6 +273,46 @@ when a URL is unreachable — a broken image never fails the PDF.
 > `pdf.render.allowed-hosts` to your portal's host so a payload cannot make the service fetch
 > arbitrary internal addresses. It is empty (allow-all) by default so existing setups keep working.
 
+### Jaquar quotation images: local → content URL → brand
+
+All three Jaquar quotation templates resolve each product image in this order:
+
+1. **Local image directory** (`pdf.render.images-dir`, default `./image-store`): look for the
+   uppercase catalogue code with `.png`, `.jpg`, or `.jpeg`, for example
+   `image-store/ABT-WHT-FSBTCF2011.jpg`. Adding/replacing a file takes effect on the next preview.
+2. **Bundled resources**: the same catalogue-code filename under
+   `src/main/resources/static/quotation-assets/jaquar/`. Four verified bathtub images ship with the PoC.
+3. **Content URL**: try the item's `imageUrl`, then its optional `contentUrl`. These must return
+   image bytes (PNG/JPEG/GIF), not a product web page. URLs use the existing remote cache,
+   timeouts, size limit and allowed-host settings. Invalid or unavailable content falls through.
+4. **Jaquar brand image**: show the bundled Jaquar logo when no usable product image is available.
+   The image's tooltip/alternative text identifies it as a brand fallback.
+
+The header defaults to the Jaquar logo on the left, with the quotation number and date on the right.
+To override the local header logo, place `jaquar-logo.png` in `image-store`.
+The enhanced sample places verified product photos on four selected lines and uses the Jaquar brand
+fallback on the remaining lines. These choices are stored in its sample JSON, so they stay the same
+between refreshes and in generated PDFs. Add a catalogue-code image locally or supply its
+image/content URL to replace any fallback.
+
+This behavior is opted into by template attributes, so other templates retain their existing image
+handling. The shipped quotation uses:
+
+```html
+<img src="{{logoUrl}}" alt="Jaquar" data-image-fallback="jaquar" data-image-role="brand"/>
+<img src="{{imageUrl}}" alt="{{catNo}}" data-image-fallback="jaquar"
+     data-product-code="{{catNo}}" data-content-url="{{contentUrl}}"/>
+```
+
+Resolved images are embedded as data URIs in the merged HTML, giving the HTML view, column draft,
+and PDF the same images without requiring the browser/PDF renderer to fetch them again. Local
+assets work offline. Image resolution attributes are removed from the output. Oversized/corrupt
+local or remote images fall through to the next source. Bundled image paths are restricted to the
+quotation-assets directory; arbitrary local file URLs are not loaded by this fallback pipeline.
+
+Image provenance and exact product-code matches are recorded in
+[`SOURCES.md`](src/main/resources/static/quotation-assets/jaquar/SOURCES.md).
+
 ### Fonts
 
 DejaVu Sans is bundled under `src/main/resources/fonts` and registered by `PdfRenderingService`.
@@ -212,7 +324,7 @@ it; bundling also keeps output identical regardless of the host's installed font
 ```
 src/main/java/com/pdf/generator/
   controller/     REST controllers (PdfController, TemplateController)
-  service/        HtmlMergeService, ColumnConfigService, PdfRenderingService,
+  service/        HtmlMergeService, ColumnConfigService, ColumnLayout, PdfRenderingService,
                   RemoteResourceLoader, TemplateStorageService
   config/         PdfTemplateProperties, PdfRenderProperties (pdf.* bindings)
   dto/            API types (TemplateInfo, ColumnConfig/ColumnGroup/ColumnDefinition)

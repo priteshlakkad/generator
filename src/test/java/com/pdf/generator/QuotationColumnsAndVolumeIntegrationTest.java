@@ -55,10 +55,11 @@ class QuotationColumnsAndVolumeIntegrationTest {
 
 		Path target = templateStore.resolve(TEMPLATE);
 		Files.createDirectories(target);
-		for (String suffix : new String[] { ".html", ".sample.json", ".columns.json" }) {
+		for (String suffix : new String[] { ".html", ".sample.json" }) {
 			Files.copy(SOURCE_DIR.resolve(TEMPLATE + suffix), target.resolve(TEMPLATE + suffix),
 				java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 		}
+		Files.writeString(target.resolve(TEMPLATE + ".columns.json"), "{\"groups\":[]}");
 	}
 
 	private String previewWith(String payload) throws Exception {
@@ -148,6 +149,47 @@ class QuotationColumnsAndVolumeIntegrationTest {
 		assertThat(doc.select("[data-repeat]")).isEmpty();
 	}
 
+	@Test
+	void columnDraftIsReadOnlyAndMatchesSavedHtmlAndPdf() throws Exception {
+		String path = "/api/templates/" + TEMPLATE + "/columns";
+		String beforeHtml = Files.readString(templateStore.resolve(TEMPLATE).resolve(TEMPLATE + ".html"));
+		String beforeConfig = Files.readString(templateStore.resolve(TEMPLATE).resolve(TEMPLATE + ".columns.json"));
+		String config = """
+			{"groups":[{"id":"items","ordered":true,"columns":[
+			{"field":"hsnCode","label":"HSN Code","custom":true,"type":"text","sizing":"auto"},
+			{"field":"slNo","sizing":"fixed","width":4},
+			{"field":"mrp","visible":false}]}]}
+			""";
+		String result = mockMvc.perform(post(path + "/preview").contentType(MediaType.APPLICATION_JSON)
+			.content("{\"config\":" + config + ",\"data\":" + sampleData() + "}"))
+			.andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+		var mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+		String draftHtml = mapper.readTree(result).get("html").asText();
+		assertThat(org.jsoup.Jsoup.parse(draftHtml).select("table.items th").first().text()).isEqualTo("HSN Code");
+		assertThat(result).contains("resolvedWidth", "canAdd");
+		assertThat(Files.readString(templateStore.resolve(TEMPLATE).resolve(TEMPLATE + ".html"))).isEqualTo(beforeHtml);
+		assertThat(Files.readString(templateStore.resolve(TEMPLATE).resolve(TEMPLATE + ".columns.json"))).isEqualTo(beforeConfig);
+
+		mockMvc.perform(put(path).contentType(MediaType.APPLICATION_JSON).content(config)).andExpect(status().isOk());
+		assertThat(previewWith(sampleData())).isEqualTo(draftHtml);
+		byte[] pdf = generateWith(sampleData());
+		try (var document = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+			assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(document)).contains("HSN Code");
+		}
+	}
+
+	@Test
+	void impossibleColumnLayoutIsRejectedWithoutSaving() throws Exception {
+		Path configPath = templateStore.resolve(TEMPLATE).resolve(TEMPLATE + ".columns.json");
+		String before = Files.readString(configPath);
+		String invalid = """
+			{"groups":[{"id":"items","columns":[{"field":"slNo","sizing":"fixed","width":100},{"field":"mrp","sizing":"auto"}]}]}
+			""";
+		mockMvc.perform(put("/api/templates/" + TEMPLATE + "/columns").contentType(MediaType.APPLICATION_JSON).content(invalid))
+			.andExpect(status().isBadRequest());
+		assertThat(Files.readString(configPath)).isEqualTo(before);
+	}
+
 	// ---------------------------------------------------------------- volume & resilience
 
 	@Test
@@ -166,7 +208,7 @@ class QuotationColumnsAndVolumeIntegrationTest {
 
 	@Test
 	void unreachableImageUrlsStillProduceAValidPdf() throws Exception {
-		String payload = sampleData().replace("https://www.jaquar.com/images/jaquar-logo.png",
+		String payload = sampleData().replace("/quotation-assets/jaquar/jaquar-logo.png",
 			"http://no-such-host.invalid/logo.png");
 
 		byte[] pdf = generateWith(payload);

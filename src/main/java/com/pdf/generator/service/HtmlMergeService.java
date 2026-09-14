@@ -15,6 +15,8 @@ import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.pdf.generator.config.PdfRenderProperties;
 
 @Service
 public class HtmlMergeService {
@@ -22,9 +24,17 @@ public class HtmlMergeService {
 	private static final Pattern TOKEN_PATTERN = Pattern.compile("\\{\\{\\s*(\\w+)\\s*\\}\\}");
 
 	private final ColumnConfigService columnConfigService;
+	private final QuotationImageService quotationImages;
 
 	public HtmlMergeService(ColumnConfigService columnConfigService) {
+		this(columnConfigService, new QuotationImageService(new PdfRenderProperties(),
+			new RemoteResourceLoader(new PdfRenderProperties())));
+	}
+
+	@Autowired
+	public HtmlMergeService(ColumnConfigService columnConfigService, QuotationImageService quotationImages) {
 		this.columnConfigService = columnConfigService;
+		this.quotationImages = quotationImages;
 	}
 
 	public String merge(String templateHtml, Map<String, Object> data) {
@@ -45,6 +55,8 @@ public class HtmlMergeService {
 
 		expandRepeats(doc, topLevel);
 		substituteTokens(doc, topLevel);
+		quotationImages.resolve(doc);
+		BundledQuotationImages.inline(doc);
 
 		doc.outputSettings()
 			.prettyPrint(false)

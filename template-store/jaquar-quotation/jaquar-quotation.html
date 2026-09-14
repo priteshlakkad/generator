@@ -34,7 +34,7 @@
   table.runner { width: 100%; border-collapse: collapse; }
   table.runner td { border: none; padding: 0; vertical-align: middle; }
   table.runner td.right { text-align: right; }
-  #pageHeader img { height: 26px; }
+  #pageHeader img { height: 36px; width: 87px; }
   #pageHeader .quote-ref { font-size: 8px; color: #4a4a4a; }
   #pageHeader .quote-ref strong { color: #1c1c1c; }
   #pageHeader .rule { border-bottom: 1.5px solid #14487f; height: 4px; }
@@ -101,7 +101,7 @@
   table.items tbody { page-break-inside: avoid; }
   table.items tbody:nth-child(even) td { background: #f7f9fb; }
   table.items td.image-cell { padding: 2px; }
-  table.items td.image-cell img { max-height: 26px; max-width: 42px; }
+  table.items td.image-cell img { width: 30px; max-width: 30px; max-height: 30px; height: auto; }
   table.items td.desc-cell {
     text-align: left; color: #55606b; font-size: 7px;
     border-top: none; padding-bottom: 4px;
@@ -144,6 +144,8 @@
   ul.term-points { margin: 0; padding-left: 12px; }
   ul.term-points li { margin-bottom: 1px; }
 
+  table.people { page-break-inside: avoid; }
+
   /* ---- closing contact strip ---- */
 
   .contact-strip {
@@ -159,7 +161,7 @@
   <div id="pageHeader">
     <table class="runner">
       <tr>
-        <td><img src="{{logoUrl}}" alt=""/></td>
+        <td><img src="{{logoUrl}}" alt="Jaquar" data-image-fallback="jaquar" data-image-role="brand"/></td>
         <td class="right quote-ref">
           Quote No. <strong>{{quoteNumber}}</strong><br/>
           Date <strong>{{quoteDate}}</strong>
@@ -234,7 +236,7 @@
         <tr>
           <td data-col="slNo">{{slNo}}</td>
           <td data-col="catNo"><a href="{{productUrl}}">{{catNo}}</a></td>
-          <td class="image-cell" data-col="imageUrl"><a href="{{productUrl}}"><img src="{{imageUrl}}" alt=""/></a></td>
+          <td class="image-cell" data-col="imageUrl"><a href="{{productUrl}}"><img src="{{imageUrl}}" alt="{{catNo}}" data-image-fallback="jaquar" data-product-code="{{catNo}}" data-content-url="{{contentUrl}}"/></a></td>
           <td data-col="qty">{{qty}}</td>
           <td data-col="mrp">{{mrp}}</td>
           <td data-col="unitPrice">{{unitPrice}}</td>
