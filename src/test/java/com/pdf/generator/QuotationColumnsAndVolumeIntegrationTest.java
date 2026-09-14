@@ -41,6 +41,7 @@ class QuotationColumnsAndVolumeIntegrationTest {
 	@DynamicPropertySource
 	static void overrideTemplateDir(DynamicPropertyRegistry registry) {
 		registry.add("pdf.templates.dir", () -> templateStore.toString());
+		registry.add("pdf.output.dir", () -> templateStore.resolve("generated").toString());
 	}
 
 	@Autowired

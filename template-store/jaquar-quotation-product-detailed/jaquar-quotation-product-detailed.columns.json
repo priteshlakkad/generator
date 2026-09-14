@@ -1,0 +1,28 @@
+{
+  "groups": [
+    {
+      "id": "items",
+      "ordered": true,
+      "columns": [
+        { "field": "slNo", "label": "S. No.", "width": 2.5, "align": "center", "visible": true },
+        { "field": "imageUrl", "label": "Product", "width": 4.5, "align": "center", "visible": true },
+        { "field": "catNo", "label": "Catalogue No.", "width": 6.5, "align": "left", "visible": true },
+        { "field": "range", "label": "Range", "width": 5.5, "align": "left", "visible": true },
+        { "field": "category", "label": "Category", "width": 5.5, "align": "left", "visible": true },
+        { "field": "finish", "label": "Finish", "width": 4.5, "align": "left", "visible": true },
+        { "field": "qty", "label": "Qty", "width": 3, "align": "center", "visible": true },
+        { "field": "unit", "label": "Unit", "width": 3.5, "align": "center", "visible": true },
+        { "field": "mrp", "label": "MRP", "width": 7.5, "align": "right", "visible": true },
+        { "field": "unitPrice", "label": "Unit Price", "width": 7.5, "align": "right", "visible": true },
+        { "field": "discPercent", "label": "Disc. %", "width": 3.5, "align": "right", "visible": true },
+        { "field": "discAmt", "label": "Disc. Amt.", "width": 7, "align": "right", "visible": true },
+        { "field": "ratePerUnit", "label": "Rate / Unit", "width": 7.5, "align": "right", "visible": true },
+        { "field": "taxableAmt", "label": "Taxable Amt.", "width": 8, "align": "right", "visible": true },
+        { "field": "gstPercent", "label": "GST %", "width": 3.5, "align": "right", "visible": true },
+        { "field": "gstAmt", "label": "GST Amt.", "width": 7, "align": "right", "visible": true },
+        { "field": "totalAmt", "label": "Total Amt.", "width": 9, "align": "right", "visible": true },
+        { "field": "deliveryWeek", "label": "Delivery", "width": 4, "align": "center", "visible": true }
+      ]
+    }
+  ]
+}

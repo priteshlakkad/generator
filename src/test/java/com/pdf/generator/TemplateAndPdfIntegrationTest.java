@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ class TemplateAndPdfIntegrationTest {
 	@DynamicPropertySource
 	static void overrideTemplateDir(DynamicPropertyRegistry registry) {
 		registry.add("pdf.templates.dir", () -> templateStore.toString());
+		registry.add("pdf.output.dir", () -> templateStore.resolve("generated").toString());
 	}
 
 	@Autowired
@@ -90,6 +92,10 @@ class TemplateAndPdfIntegrationTest {
 		byte[] pdfBytes = pdfResult.getResponse().getContentAsByteArray();
 		assertThat(pdfBytes.length).isGreaterThan(0);
 		assertThat(new String(pdfBytes, 0, 4)).isEqualTo("%PDF");
+		String storedPath = pdfResult.getResponse().getHeader("X-Quotation-Path");
+		assertThat(storedPath).matches("\\d{4}/\\d{2}/invoice/Q-1/Q-1-\\d{8}-\\d{6}-\\d{3}\\.pdf");
+		assertThat(pdfResult.getResponse().getHeader("Content-Disposition")).contains("Q-1-");
+		assertThat(Files.readAllBytes(templateStore.resolve("generated").resolve(storedPath))).isEqualTo(pdfBytes);
 
 		MvcResult previewResult = mockMvc()
 			.perform(post("/api/pdf/preview/invoice")

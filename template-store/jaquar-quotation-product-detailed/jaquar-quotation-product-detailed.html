@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @page {
+    size: A4 landscape;
+    margin: 72px 22px 40px 22px;
+    @top-center { content: element(pageHeader); }
+    @bottom-left { content: element(pageFooter); }
+    @bottom-right {
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: "DejaVu Sans", Helvetica, Arial, sans-serif;
+      font-size: 7px;
+      color: #66777a;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { background: #ffffff; }
+  body {
+    margin: 0;
+    background: #ffffff;
+    font-family: "DejaVu Sans", Helvetica, Arial, sans-serif;
+    font-size: 7.5px;
+    line-height: 1.3;
+    color: #243336;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  a { color: #09565F; text-decoration: none; }
+
+  /* Official logo lock-up and quotation reference, repeated on each PDF page. */
+  #pageHeader { position: running(pageHeader); width: 100%; }
+  #pageFooter { position: running(pageFooter); font-size: 7px; color: #66777a; }
+  table.runner td { border: 0; padding: 0; vertical-align: middle; }
+  #pageHeader img { display: block; width: 77px; height: 32px; }
+  #pageHeader .document-name {
+    padding-left: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.7px;
+    color: #09565F;
+  }
+  #pageHeader .quote-ref { text-align: right; font-size: 7.5px; color: #526568; }
+  #pageHeader .quote-ref strong { color: #243336; }
+  #pageHeader .brand-rule { height: 5px; border-bottom: 3px solid #09565F; }
+
+  .hero { margin: 0 0 7px; border: 1px solid #09565F; }
+  .hero td { padding: 5px 8px; border: 0; }
+  .hero .title {
+    width: 65%;
+    background: #09565F;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.8px;
+  }
+  .hero .status { text-align: right; background: #EAF2F3; color: #09565F; }
+  .hero .status strong { font-size: 9px; }
+
+  .section-title {
+    margin: 8px 0 3px;
+    padding: 3px 7px;
+    border-left: 3px solid #09565F;
+    background: #EAF2F3;
+    color: #09565F;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 0.35px;
+    page-break-after: avoid;
+  }
+  .section-title.first { margin-top: 0; }
+
+  table.details { margin-bottom: 6px; }
+  table.details td { border: 1px solid #CAD8DA; padding: 4px 6px; vertical-align: top; }
+  table.details td.label {
+    width: 16%;
+    background: #F4F8F8;
+    color: #40575B;
+    font-weight: bold;
+  }
+  table.details td.value { width: 34%; background: #ffffff; }
+  .muted { color: #6A7D80; }
+
+  .line-section {
+    margin: 7px 0 0;
+    padding: 3px 6px;
+    background: #DCE9EA;
+    border-top: 1px solid #9DB9BD;
+    color: #09565F;
+    font-weight: bold;
+    page-break-after: avoid;
+  }
+  table.items {
+    table-layout: fixed;
+    -fs-table-paginate: paginate;
+    border: 1px solid #9DB9BD;
+    margin-bottom: 5px;
+  }
+  table.items th, table.items td {
+    border: 1px solid #D5E0E2;
+    padding: 1.5px 2px;
+    font-size: 5.8px;
+    vertical-align: middle;
+    word-wrap: break-word;
+  }
+  table.items td { background: #ffffff; }
+  table.items th {
+    background: #09565F;
+    color: #ffffff;
+    border-color: #09565F;
+    font-size: 5.6px;
+    line-height: 1.15;
+    font-weight: bold;
+  }
+  table.items tbody { page-break-inside: avoid; }
+  table.items tbody:nth-child(even) td { background: #F6F9F9; }
+  table.items td.image-cell { padding: 2px; text-align: center; }
+  table.items td.image-cell img {
+    display: inline-block;
+    width: 25px;
+    max-width: 25px;
+    max-height: 25px;
+    height: auto;
+  }
+  table.items td.desc-cell { padding: 2px 4px 3px; color: #526568; border-top: 0; }
+  table.items td.desc-cell strong { color: #304548; }
+  table.items td.desc-cell .item-meta { color: #718588; }
+  table.items tfoot td {
+    background: #EAF2F3;
+    color: #09565F;
+    border-color: #9DB9BD;
+    text-align: right;
+    font-weight: bold;
+  }
+
+  table.summary { margin-bottom: 7px; page-break-inside: avoid; }
+  table.summary td { border: 1px solid #CAD8DA; padding: 4px 6px; }
+  table.summary td.label { background: #F4F8F8; color: #40575B; font-weight: bold; width: 20%; }
+  table.summary td.amount { text-align: right; width: 30%; }
+  table.summary tr.net td { background: #09565F; color: #ffffff; border-color: #09565F; font-size: 9px; font-weight: bold; }
+  table.summary tr.words td { color: #40575B; font-style: italic; }
+
+  table.commercial { margin-bottom: 7px; page-break-inside: avoid; }
+  table.commercial td { border: 1px solid #CAD8DA; padding: 4px 6px; vertical-align: top; }
+  table.commercial td.label { width: 18%; color: #09565F; font-weight: bold; background: #F4F8F8; }
+  table.commercial td.value { width: 32%; }
+
+  table.people { margin-bottom: 7px; page-break-inside: avoid; }
+  table.people th, table.people td { border: 1px solid #CAD8DA; padding: 4px 6px; text-align: left; }
+  table.people th { background: #09565F; color: #ffffff; font-weight: bold; }
+
+  table.approval { margin: 8px 0; page-break-inside: avoid; }
+  table.approval td { width: 33.33%; height: 56px; border: 1px solid #9DB9BD; padding: 5px 7px; vertical-align: bottom; }
+  table.approval .role { display: block; color: #09565F; font-weight: bold; margin-bottom: 3px; }
+  table.approval .sign-line { display: block; border-top: 1px solid #7C9295; padding-top: 3px; color: #526568; }
+
+  table.terms { margin-top: 8px; }
+  table.terms td { border: 1px solid #CAD8DA; padding: 4px 6px; vertical-align: top; font-size: 7.3px; }
+  table.terms td.term-no { width: 5%; text-align: center; color: #09565F; font-weight: bold; }
+  table.terms td.term-title { width: 21%; background: #F4F8F8; color: #40575B; font-weight: bold; }
+  table.terms tbody { page-break-inside: avoid; }
+  ul.term-points { margin: 0; padding-left: 12px; }
+  ul.term-points li { margin-bottom: 1px; }
+
+  .contact-strip {
+    margin-top: 9px;
+    padding: 6px 8px;
+    border-top: 2px solid #09565F;
+    background: #EAF2F3;
+    color: #40575B;
+    text-align: center;
+    font-size: 7.5px;
+  }
+</style>
+</head>
+<body>
+  <div id="pageHeader">
+    <table class="runner">
+      <tr>
+        <td><img src="{{logoUrl}}" alt="Jaquar" data-image-fallback="jaquar" data-image-role="brand"/></td>
+        <td class="document-name">DETAILED PRODUCT QUOTATION</td>
+        <td class="quote-ref">
+          Quote No. <strong>{{quoteNumber}}</strong> &nbsp;|&nbsp; Rev. <strong>{{revisionNumber}}</strong><br/>
+          Date <strong>{{quoteDate}}</strong> &nbsp;|&nbsp; Valid Until <strong>{{validUntil}}</strong>
+        </td>
+      </tr>
+      <tr><td class="brand-rule" colspan="3"></td></tr>
+    </table>
+  </div>
+
+  <div id="pageFooter">Jaquar Detailed Product Quotation {{quoteNumber}} · Revision {{revisionNumber}}</div>
+
+  <table class="hero">
+    <tr>
+      <td class="title">JAQUAR DETAILED PRODUCT QUOTATION</td>
+      <td class="status">Quotation Status<br/><strong>{{quotationStatus}}</strong></td>
+    </tr>
+  </table>
+
+  <div class="section-title first">PROJECT OVERVIEW</div>
+  <table class="details">
+    <tr>
+      <td class="label">Project Name</td><td class="value">{{projectName}}</td>
+      <td class="label">Project Type</td><td class="value">{{projectType}}</td>
+    </tr>
+    <tr>
+      <td class="label">Site Location</td><td class="value">{{siteLocation}}</td>
+      <td class="label">Architect / Consultant</td><td class="value">{{architectConsultant}}</td>
+    </tr>
+    <tr>
+      <td class="label">Expected Start</td><td class="value">{{expectedStartDate}}</td>
+      <td class="label">Expected Completion</td><td class="value">{{expectedCompletionDate}}</td>
+    </tr>
+  </table>
+
+  <div class="section-title">PRODUCT SELECTION</div>
+  <div data-repeat="sections">
+    <div class="line-section">{{sectionName}}</div>
+    <table class="items" data-columns="items">
+      <colgroup>
+        <col data-col="slNo" style="width:2.5%"/>
+        <col data-col="imageUrl" style="width:4.5%"/>
+        <col data-col="catNo" style="width:6.5%"/>
+        <col data-col="range" style="width:5.5%"/>
+        <col data-col="category" style="width:5.5%"/>
+        <col data-col="finish" style="width:4.5%"/>
+        <col data-col="qty" style="width:3%"/>
+        <col data-col="unit" style="width:3.5%"/>
+        <col data-col="mrp" style="width:7.5%"/>
+        <col data-col="unitPrice" style="width:7.5%"/>
+        <col data-col="discPercent" style="width:3.5%"/>
+        <col data-col="discAmt" style="width:7%"/>
+        <col data-col="ratePerUnit" style="width:7.5%"/>
+        <col data-col="taxableAmt" style="width:8%"/>
+        <col data-col="gstPercent" style="width:3.5%"/>
+        <col data-col="gstAmt" style="width:7%"/>
+        <col data-col="totalAmt" style="width:9%"/>
+        <col data-col="deliveryWeek" style="width:4%"/>
+      </colgroup>
+      <thead>
+        <tr>
+          <th data-col="slNo" data-align="center">S. No.</th>
+          <th data-col="imageUrl" data-align="center">Product</th>
+          <th data-col="catNo" data-align="left">Catalogue No.</th>
+          <th data-col="range" data-align="left">Range</th>
+          <th data-col="category" data-align="left">Category</th>
+          <th data-col="finish" data-align="left">Finish</th>
+          <th data-col="qty" data-align="center">Qty</th>
+          <th data-col="unit" data-align="center">Unit</th>
+          <th data-col="mrp" data-align="right">MRP</th>
+          <th data-col="unitPrice" data-align="right">Unit Price</th>
+          <th data-col="discPercent" data-align="right">Disc. %</th>
+          <th data-col="discAmt" data-align="right">Disc. Amt.</th>
+          <th data-col="ratePerUnit" data-align="right">Rate / Unit</th>
+          <th data-col="taxableAmt" data-align="right">Taxable Amt.</th>
+          <th data-col="gstPercent" data-align="right">GST %</th>
+          <th data-col="gstAmt" data-align="right">GST Amt.</th>
+          <th data-col="totalAmt" data-align="right">Total Amt.</th>
+          <th data-col="deliveryWeek" data-align="center">Delivery</th>
+        </tr>
+      </thead>
+      <tbody data-repeat="items">
+        <tr>
+          <td data-col="slNo">{{slNo}}</td>
+          <td class="image-cell" data-col="imageUrl"><a href="{{productUrl}}"><img src="{{imageUrl}}" alt="{{catNo}}" data-image-fallback="jaquar" data-product-code="{{catNo}}" data-content-url="{{contentUrl}}"/></a></td>
+          <td data-col="catNo"><a href="{{productUrl}}">{{catNo}}</a></td>
+          <td data-col="range">{{range}}</td>
+          <td data-col="category">{{category}}</td>
+          <td data-col="finish">{{finish}}</td>
+          <td data-col="qty">{{qty}}</td>
+          <td data-col="unit">{{unit}}</td>
+          <td data-col="mrp">{{mrp}}</td>
+          <td data-col="unitPrice">{{unitPrice}}</td>
+          <td data-col="discPercent">{{discPercent}}</td>
+          <td data-col="discAmt">{{discAmt}}</td>
+          <td data-col="ratePerUnit">{{ratePerUnit}}</td>
+          <td data-col="taxableAmt">{{taxableAmt}}</td>
+          <td data-col="gstPercent">{{gstPercent}}</td>
+          <td data-col="gstAmt">{{gstAmt}}</td>
+          <td data-col="totalAmt">{{totalAmt}}</td>
+          <td data-col="deliveryWeek">{{deliveryWeek}}</td>
+        </tr>
+        <tr>
+          <td class="desc-cell" data-colspan="fill">
+            <strong>{{description}}</strong><br/>
+            <span class="item-meta">HSN {{hsnCode}} · {{subCategory}} · Warranty {{warranty}} · {{remarks}}</span>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr><td data-colspan="fill">{{sectionName}} TOTAL</td><td colspan="2">{{sectionTotal}}</td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="section-title">QUOTATION SUMMARY</div>
+  <table class="summary">
+    <tr>
+      <td class="label">Total Quantity</td><td class="amount">{{totalQuantity}}</td>
+      <td class="label">Total MRP</td><td class="amount">{{totalMrp}}</td>
+    </tr>
+    <tr>
+      <td class="label">Taxable Amount</td><td class="amount">{{totalTaxableAmt}}</td>
+      <td class="label">Total GST</td><td class="amount">{{totalTax}}</td>
+    </tr>
+    <tr class="net"><td>NET AMOUNT</td><td class="amount" colspan="3">{{netAmt}}</td></tr>
+    <tr class="words"><td class="label">Amount in Words</td><td colspan="3">{{amountInWords}}</td></tr>
+  </table>
+
+  <div class="section-title">COMMERCIAL &amp; FULFILMENT DETAILS</div>
+  <table class="commercial">
+    <tr>
+      <td class="label">Payment Terms</td><td class="value">{{paymentTerms}}</td>
+      <td class="label">Price Validity</td><td class="value">{{priceValidity}}</td>
+    </tr>
+    <tr>
+      <td class="label">Freight</td><td class="value">{{freightTerms}}</td>
+      <td class="label">Delivery Terms</td><td class="value">{{deliveryTerms}}</td>
+    </tr>
+    <tr>
+      <td class="label">Installation</td><td class="value">{{installationTerms}}</td>
+      <td class="label">Warranty</td><td class="value">{{warrantyTerms}}</td>
+    </tr>
+  </table>
+
+  <div class="section-title">CONTACTS &amp; APPROVAL</div>
+  <table class="people">
+    <tr><th>Customer Contact</th><th>Jaquar Sales Contact</th><th>Quotation Prepared By</th></tr>
+    <tr>
+      <td>{{customerContactName}}<br/><a href="mailto:{{customerContactEmail}}">{{customerContactEmail}}</a><br/>{{customerContactNumber}}</td>
+      <td>{{salesPersonName}}<br/><a href="mailto:{{salesPersonEmail}}">{{salesPersonEmail}}</a><br/>{{salesPersonNumber}}</td>
+      <td>{{preparedByName}}<br/><a href="mailto:{{preparedByEmail}}">{{preparedByEmail}}</a><br/>{{preparedByNumber}}</td>
+    </tr>
+  </table>
+  <table class="approval">
+    <tr>
+      <td><span class="role">Prepared By</span><span class="sign-line">{{preparedByName}} · Date / Signature</span></td>
+      <td><span class="role">Approved By</span><span class="sign-line">{{approvedByName}} · Date / Signature</span></td>
+      <td><span class="role">Customer Acceptance</span><span class="sign-line">Name · Date / Signature</span></td>
+    </tr>
+  </table>
+
+  <div class="section-title">TERMS &amp; CONDITIONS</div>
+  <table class="terms">
+    <tbody data-repeat="terms">
+      <tr>
+        <td class="term-no">{{no}}</td>
+        <td class="term-title">{{title}}</td>
+        <td><ul class="term-points"><li data-repeat="points">{{value}}</li></ul></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="contact-strip">
+    Website <a href="{{websiteUrl}}">{{websiteUrl}}</a>
+    &nbsp;|&nbsp; Purchase Assistance <a href="tel:{{purchaseAssistanceNumber}}">{{purchaseAssistanceNumber}}</a>
+    &nbsp;|&nbsp; Customer Care <a href="tel:{{customerCareNumber}}">{{customerCareNumber}}</a>
+  </div>
+</body>
+</html>

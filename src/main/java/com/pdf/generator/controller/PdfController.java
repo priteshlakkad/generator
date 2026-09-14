@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pdf.generator.service.HtmlMergeService;
 import com.pdf.generator.service.PdfRenderingService;
+import com.pdf.generator.service.QuotationOutputService;
+import com.pdf.generator.service.StoredQuotation;
 import com.pdf.generator.service.TemplateStorageService;
 
 @RestController
@@ -27,12 +29,14 @@ public class PdfController {
 	private final TemplateStorageService templateStorageService;
 	private final HtmlMergeService htmlMergeService;
 	private final PdfRenderingService pdfRenderingService;
+	private final QuotationOutputService quotationOutputService;
 
 	public PdfController(TemplateStorageService templateStorageService, HtmlMergeService htmlMergeService,
-			PdfRenderingService pdfRenderingService) {
+			PdfRenderingService pdfRenderingService, QuotationOutputService quotationOutputService) {
 		this.templateStorageService = templateStorageService;
 		this.htmlMergeService = htmlMergeService;
 		this.pdfRenderingService = pdfRenderingService;
+		this.quotationOutputService = quotationOutputService;
 	}
 
 	@PostMapping("/generate/{templateType}")
@@ -46,14 +50,17 @@ public class PdfController {
 		long mergedAt = System.currentTimeMillis();
 
 		byte[] pdf = pdfRenderingService.render(mergedHtml);
+		StoredQuotation stored = quotationOutputService.store(templateType, data, pdf);
 		long finishedAt = System.currentTimeMillis();
 
-		log.info("Generated '{}' in {} ms (merge {} ms, render {} ms), {} KB",
-			templateType, finishedAt - startedAt, mergedAt - startedAt, finishedAt - mergedAt, pdf.length / 1024);
+		log.info("Generated '{}' in {} ms (merge {} ms, render/store {} ms), {} KB; stored at '{}'",
+			templateType, finishedAt - startedAt, mergedAt - startedAt, finishedAt - mergedAt,
+			pdf.length / 1024, stored.path());
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_PDF);
-		headers.setContentDisposition(ContentDisposition.attachment().filename(templateType + ".pdf").build());
+		headers.setContentDisposition(ContentDisposition.attachment().filename(stored.fileName()).build());
+		headers.set("X-Quotation-Path", stored.relativePath().toString().replace('\\', '/'));
 
 		return ResponseEntity.ok().headers(headers).body(pdf);
 	}

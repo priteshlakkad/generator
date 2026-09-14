@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "id": "items",
+      "ordered": true,
+      "columns": [
+        { "field": "slNo", "label": "S. No.", "width": 4, "align": "center", "visible": true },
+        { "field": "imageUrl", "label": "Product", "width": 8, "align": "center", "visible": true },
+        { "field": "catNo", "label": "Catalogue No.", "width": 11, "align": "left", "visible": true },
+        { "field": "range", "label": "Range", "width": 9, "align": "left", "visible": true },
+        { "field": "finish", "label": "Finish", "width": 8, "align": "left", "visible": true },
+        { "field": "qty", "label": "Qty", "width": 4, "align": "center", "visible": true },
+        { "field": "unit", "label": "Unit", "width": 5, "align": "center", "visible": true },
+        { "field": "mrp", "label": "MRP", "width": 11, "align": "right", "visible": true },
+        { "field": "discPercent", "label": "Disc. %", "width": 5, "align": "right", "visible": true },
+        { "field": "taxableAmt", "label": "Taxable Amt.", "width": 13, "align": "right", "visible": true },
+        { "field": "gstPercent", "label": "GST %", "width": 5, "align": "right", "visible": true },
+        { "field": "totalAmt", "label": "Total Amt.", "width": 17, "align": "right", "visible": true }
+      ]
+    }
+  ]
+}

@@ -200,7 +200,7 @@ All endpoints return errors as JSON: `{ "error": "<message>" }`, with `404` for 
 
 | Method | Path | Body | Response | Description |
 |---|---|---|---|---|
-| POST | `/api/pdf/generate/{templateType}` | JSON object (merge data) | `application/pdf` (file download) | Merges the template with the supplied data and returns the rendered PDF |
+| POST | `/api/pdf/generate/{templateType}` | JSON object (merge data) | `application/pdf` (file download) | Merges, stores, and returns the rendered PDF |
 | POST | `/api/pdf/preview/{templateType}` | JSON object (merge data) | `text/html` | Merges the template with the supplied data and returns the resulting HTML (no PDF rendering) |
 
 ### Template management — `/api/templates`
@@ -238,6 +238,38 @@ curl -X POST http://localhost:8080/api/pdf/generate/invoice \
   -o invoice.pdf
 ```
 
+### Stored quotation output
+
+Every successful `POST /api/pdf/generate/{templateType}` writes the same PDF returned to the
+caller beneath `pdf.output.dir`. The server generation date, normalized template type, and sanitized
+quotation number form the folders:
+
+```text
+output/quotations/
+  2026/
+    09/
+      jaquar-quotation-enhanced/
+        JQ-PRJ-560122/
+          JQ-PRJ-560122-rev-02-20260914-114448-444.pdf
+```
+
+The quotation number comes from `quoteNumber`, `quotationNumber`, or `quoteNo`; when none is
+provided, the service creates a timestamped `QUOTE-...` identifier. Revision comes from
+`revisionNumber` or `revision`. Unsafe filename characters are converted to hyphens, values are
+length-limited, and the resolved path must remain under the configured root. A same-millisecond
+name collision gets a numeric suffix, so an existing quotation is never overwritten.
+
+The response remains `application/pdf`. Its `Content-Disposition` uses the stored filename and
+`X-Quotation-Path` contains the path relative to `pdf.output.dir`. Preview calls do not write files.
+
+### Planned email option
+
+Email delivery is intentionally deferred. A future `POST /api/quotations/email` can accept the
+`X-Quotation-Path` returned during generation plus `to`, optional `cc`, `subject`, and `message`.
+The implementation should validate that the selected PDF remains beneath `pdf.output.dir`, attach
+that exact stored file, send through configured SMTP/provider credentials, and record delivery
+status and failure details. No email endpoint, provider dependency, or send button exists yet.
+
 ## Configuration
 
 Set in [`application.properties`](src/main/resources/application.properties):
@@ -245,6 +277,7 @@ Set in [`application.properties`](src/main/resources/application.properties):
 | Property | Default | Description |
 |---|---|---|
 | `pdf.templates.dir` | `./template-store` | Filesystem directory where templates are stored |
+| `pdf.output.dir` | `./output/quotations` | Root for PDFs created through the generation REST endpoint |
 | `pdf.render.images-dir` | `./image-store` | Optional local catalogue-code image directory for Jaquar quotations |
 | `pdf.render.base-uri` | *(blank)* | Base URI relative resource paths resolve against, e.g. `https://portal.example.com/`. Blank requires absolute URLs |
 | `pdf.render.connect-timeout-ms` | `3000` | Connect timeout when fetching a remote image |
