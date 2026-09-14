@@ -95,6 +95,11 @@ class TemplateAndPdfIntegrationTest {
 		String storedPath = pdfResult.getResponse().getHeader("X-Quotation-Path");
 		assertThat(storedPath).matches("\\d{4}/\\d{2}/invoice/Q-1/Q-1-\\d{8}-\\d{6}-\\d{3}\\.pdf");
 		assertThat(pdfResult.getResponse().getHeader("Content-Disposition")).contains("Q-1-");
+		assertThat(pdfResult.getResponse().getHeader("X-Generation-Id")).isNotBlank();
+		assertThat(pdfResult.getResponse().getHeader("X-Generation-Time-Ms")).matches("\\d+\\.\\d{3}");
+		assertThat(pdfResult.getResponse().getHeader("X-Processed-Rows")).isEqualTo("2");
+		assertThat(pdfResult.getResponse().getHeader("Server-Timing"))
+			.contains("template;dur=", "merge;dur=", "render;dur=", "store;dur=", "total;dur=");
 		assertThat(Files.readAllBytes(templateStore.resolve("generated").resolve(storedPath))).isEqualTo(pdfBytes);
 
 		MvcResult previewResult = mockMvc()

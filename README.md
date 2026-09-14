@@ -262,6 +262,14 @@ name collision gets a numeric suffix, so an existing quotation is never overwrit
 The response remains `application/pdf`. Its `Content-Disposition` uses the stored filename and
 `X-Quotation-Path` contains the path relative to `pdf.output.dir`. Preview calls do not write files.
 
+Generation responses also include `X-Generation-Id`, `X-Generation-Time-Ms`, `X-Processed-Rows`,
+and a standard `Server-Timing` header. The `performance.quotation` logger writes one structured
+success or failure event per request with submitted line items, successfully processed rows, phase
+timings expressed in milliseconds, PDF size, output path, and failed stage. Logs use a two-column
+table for easier client demonstrations.
+The client demonstration procedure, balanced talking points, limitations, and future metrics are in
+[`PERFORMANCE-DEMO.md`](docs/PERFORMANCE-DEMO.md).
+
 ### Planned email option
 
 Email delivery is intentionally deferred. A future `POST /api/quotations/email` can accept the
