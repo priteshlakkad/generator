@@ -11,7 +11,7 @@
 	}
 
 	document.getElementById('templateTitle').textContent = templateType;
-	document.title = `${templateType} — ${editing ? 'Template Editor' : 'Quotation View'}`;
+	document.title = `${templateType} — ${editing ? 'Template Editor' : 'Quotation View'} — QuoteWeave`;
 	const modeLink = document.getElementById('modeLink');
 	modeLink.textContent = editing ? 'View Quotation' : 'Edit Template';
 	modeLink.href = `edit.html?type=${encodeURIComponent(templateType)}${editing ? '' : '&mode=edit'}`;

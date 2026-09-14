@@ -8,11 +8,11 @@
 		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.pdf</groupId>
-	<artifactId>generator</artifactId>
+	<groupId>com.quoteweave</groupId>
+	<artifactId>quoteweave-platform</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>QuoteWeave</name>
+	<description>Create branded quotations from your data</description>
 	<url/>
 	<licenses>
 		<license/>

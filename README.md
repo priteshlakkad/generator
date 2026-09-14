@@ -1,13 +1,15 @@
-# PDF Generator
+# QuoteWeave
 
-A Spring Boot service that turns HTML templates into PDF documents. Templates use simple `{{token}}` placeholders and `data-repeat` rows for tabular/list data — no JasperReports, no compiled report definitions. It ships with a built-in, browser-based visual template designer so templates can be authored and tested without redeploying the app.
+**Create branded quotations from your data.**
+
+QuoteWeave is a SaaS-ready platform for designing, generating, storing, and delivering professional quotations. It turns HTML templates and JSON data into branded PDF documents using simple `{{token}}` placeholders and `data-repeat` rows — no compiled report definitions required. It ships with a browser-based visual template designer so templates can be authored and tested without redeploying the application.
 
 ## How it works
 
 1. An HTML template is stored on disk with merge tokens, e.g. `{{customerName}}`, and a repeatable row marked with `data-repeat="items"`.
 2. A JSON payload is posted to the API with the actual data (`{ "customerName": "Acme Corp", "items": [...] }`).
-3. The merge engine ([`HtmlMergeService`](src/main/java/com/pdf/generator/service/HtmlMergeService.java)) parses the HTML with [jsoup](https://jsoup.org/), expands the repeat rows (one clone per array item, including nested repeats resolved against each item's own scope), and substitutes tokens in text and attributes.
-4. The merged HTML is rendered to a PDF byte stream by [`PdfRenderingService`](src/main/java/com/pdf/generator/service/PdfRenderingService.java) using [OpenHTMLtoPDF](https://github.com/danfickle/openhtmltopdf).
+3. The merge engine ([`HtmlMergeService`](src/main/java/com/quoteweave/platform/service/HtmlMergeService.java)) parses the HTML with [jsoup](https://jsoup.org/), expands the repeat rows (one clone per array item, including nested repeats resolved against each item's own scope), and substitutes tokens in text and attributes.
+4. The merged HTML is rendered to a PDF byte stream by [`PdfRenderingService`](src/main/java/com/quoteweave/platform/service/PdfRenderingService.java) using [OpenHTMLtoPDF](https://github.com/danfickle/openhtmltopdf).
 
 Templates are stored as plain files (no database):
 
@@ -55,7 +57,7 @@ The app starts on `http://localhost:8080` by default. On first run it creates th
 
 ```bash
 ./mvnw clean package
-java -jar target/generator-0.0.1-SNAPSHOT.jar
+java -jar target/quoteweave-platform-0.0.1-SNAPSHOT.jar
 ```
 
 ### Run tests
@@ -241,7 +243,7 @@ curl -X POST http://localhost:8080/api/pdf/generate/invoice \
 ### Stored quotation output
 
 Every successful `POST /api/pdf/generate/{templateType}` writes the same PDF returned to the
-caller beneath `pdf.output.dir`. The server generation date, normalized template type, and sanitized
+caller beneath `quoteweave.output.dir`. The server generation date, normalized template type, and sanitized
 quotation number form the folders:
 
 ```text
@@ -260,7 +262,7 @@ length-limited, and the resolved path must remain under the configured root. A s
 name collision gets a numeric suffix, so an existing quotation is never overwritten.
 
 The response remains `application/pdf`. Its `Content-Disposition` uses the stored filename and
-`X-Quotation-Path` contains the path relative to `pdf.output.dir`. Preview calls do not write files.
+`X-Quotation-Path` contains the path relative to `quoteweave.output.dir`. Preview calls do not write files.
 
 Generation responses also include `X-Generation-Id`, `X-Generation-Time-Ms`, `X-Processed-Rows`,
 and a standard `Server-Timing` header. The `performance.quotation` logger writes one structured
@@ -274,7 +276,7 @@ The client demonstration procedure, balanced talking points, limitations, and fu
 
 Email delivery is intentionally deferred. A future `POST /api/quotations/email` can accept the
 `X-Quotation-Path` returned during generation plus `to`, optional `cc`, `subject`, and `message`.
-The implementation should validate that the selected PDF remains beneath `pdf.output.dir`, attach
+The implementation should validate that the selected PDF remains beneath `quoteweave.output.dir`, attach
 that exact stored file, send through configured SMTP/provider credentials, and record delivery
 status and failure details. No email endpoint, provider dependency, or send button exists yet.
 
@@ -284,15 +286,15 @@ Set in [`application.properties`](src/main/resources/application.properties):
 
 | Property | Default | Description |
 |---|---|---|
-| `pdf.templates.dir` | `./template-store` | Filesystem directory where templates are stored |
-| `pdf.output.dir` | `./output/quotations` | Root for PDFs created through the generation REST endpoint |
-| `pdf.render.images-dir` | `./image-store` | Optional local catalogue-code image directory for Jaquar quotations |
-| `pdf.render.base-uri` | *(blank)* | Base URI relative resource paths resolve against, e.g. `https://portal.example.com/`. Blank requires absolute URLs |
-| `pdf.render.connect-timeout-ms` | `3000` | Connect timeout when fetching a remote image |
-| `pdf.render.read-timeout-ms` | `5000` | Read timeout when fetching a remote image |
-| `pdf.render.max-resource-bytes` | `5242880` | Resources larger than this are skipped |
-| `pdf.render.cache-size` | `256` | Fetched resources held in memory; `0` disables caching |
-| `pdf.render.allowed-hosts` | *(empty = any)* | Hosts permitted to serve remote resources |
+| `quoteweave.templates.dir` | `./template-store` | Filesystem directory where templates are stored |
+| `quoteweave.output.dir` | `./output/quotations` | Root for PDFs created through the generation REST endpoint |
+| `quoteweave.render.images-dir` | `./image-store` | Optional local catalogue-code image directory for Jaquar quotations |
+| `quoteweave.render.base-uri` | *(blank)* | Base URI relative resource paths resolve against, e.g. `https://portal.example.com/`. Blank requires absolute URLs |
+| `quoteweave.render.connect-timeout-ms` | `3000` | Connect timeout when fetching a remote image |
+| `quoteweave.render.read-timeout-ms` | `5000` | Read timeout when fetching a remote image |
+| `quoteweave.render.max-resource-bytes` | `5242880` | Resources larger than this are skipped |
+| `quoteweave.render.cache-size` | `256` | Fetched resources held in memory; `0` disables caching |
+| `quoteweave.render.allowed-hosts` | *(empty = any)* | Hosts permitted to serve remote resources |
 
 ### Images and links
 
@@ -311,14 +313,14 @@ above, understands `data:` URIs, and substitutes a transparent placeholder plus 
 when a URL is unreachable — a broken image never fails the PDF.
 
 > **Security:** image URLs usually come from the request payload and are fetched server-side. Set
-> `pdf.render.allowed-hosts` to your portal's host so a payload cannot make the service fetch
+> `quoteweave.render.allowed-hosts` to your portal's host so a payload cannot make the service fetch
 > arbitrary internal addresses. It is empty (allow-all) by default so existing setups keep working.
 
 ### Jaquar quotation images: local → content URL → brand
 
 All three Jaquar quotation templates resolve each product image in this order:
 
-1. **Local image directory** (`pdf.render.images-dir`, default `./image-store`): look for the
+1. **Local image directory** (`quoteweave.render.images-dir`, default `./image-store`): look for the
    uppercase catalogue code with `.png`, `.jpg`, or `.jpeg`, for example
    `image-store/ABT-WHT-FSBTCF2011.jpg`. Adding/replacing a file takes effect on the next preview.
 2. **Bundled resources**: the same catalogue-code filename under
@@ -363,11 +365,11 @@ it; bundling also keeps output identical regardless of the host's installed font
 ## Project structure
 
 ```
-src/main/java/com/pdf/generator/
+src/main/java/com/quoteweave/platform/
   controller/     REST controllers (PdfController, TemplateController)
   service/        HtmlMergeService, ColumnConfigService, ColumnLayout, PdfRenderingService,
                   RemoteResourceLoader, TemplateStorageService
-  config/         PdfTemplateProperties, PdfRenderProperties (pdf.* bindings)
+  config/         PdfTemplateProperties, PdfRenderProperties (quoteweave.* bindings)
   dto/            API types (TemplateInfo, ColumnConfig/ColumnGroup/ColumnDefinition)
   exception/      Custom exceptions + GlobalExceptionHandler
 src/main/resources/
@@ -376,7 +378,6 @@ src/main/resources/
   static/designer/   Built-in visual template designer (HTML/JS + vendored TinyMCE)
 template-store/       Stored templates (HTML + sample JSON), created at runtime
 samples/              Example request payloads for manual testing
-backup-jasperreports-implementation/   Archived prior JasperReports-based implementation, kept for reference only — not used by the running app
 ```
 
 ## Notes
